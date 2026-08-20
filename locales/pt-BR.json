@@ -1,0 +1,27 @@
+{
+  "site": {
+    "title": "Akopil",
+    "description": "Catálogo de óculos de sol"
+  },
+  "admin": {
+    "login": {
+      "title": "Entrar",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Senha",
+      "submit": "Entrar",
+      "submitting": "Entrando...",
+      "invalidCredentials": "E-mail ou senha inválidos."
+    },
+    "dashboard": {
+      "title": "Painel administrativo",
+      "lastSyncLabel": "Última sincronização",
+      "neverSynced": "Nenhuma sincronização realizada ainda.",
+      "activeProductsLabel": "Produtos ativos",
+      "syncButton": "Sincronizar produtos",
+      "syncing": "Sincronizando...",
+      "syncSuccess": "Sincronização concluída.",
+      "syncError": "Erro ao sincronizar. Tente novamente.",
+      "logout": "Sair"
+    }
+  }
+}
