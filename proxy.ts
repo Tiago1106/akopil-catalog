@@ -31,8 +31,11 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isLoginRoute = pathname === "/admin/login";
+  const isAdminPageRoute = pathname.startsWith("/admin") && !isLoginRoute;
 
-  if (!isLoginRoute && !user) {
+  // /api/sync enforces auth itself and returns a 401 JSON response instead of
+  // redirecting, so API callers never get an HTML page back.
+  if (isAdminPageRoute && !user) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
