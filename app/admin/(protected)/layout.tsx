@@ -1,6 +1,13 @@
 import { redirect } from "next/navigation";
 import { Toaster } from "sonner";
 import { createClient } from "@/lib/supabase/server";
+import { AppSidebar } from "@/components/app-sidebar";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export default async function ProtectedAdminLayout({
   children,
@@ -17,26 +24,28 @@ export default async function ProtectedAdminLayout({
   }
 
   return (
-    <>
-      {children}
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="h-4" />
+        </header>
+        <div className="flex-1 p-6">{children}</div>
+      </SidebarInset>
       <Toaster
-        position="bottom-right"
+        position="top-center"
         richColors
+        duration={3000}
         style={
           {
             "--border-radius": "6px",
             "--normal-bg": "#ffffff",
             "--normal-border": "#e5e5e5",
             "--normal-text": "#111111",
-            "--success-bg": "#ffffff",
-            "--success-border": "#111111",
-            "--success-text": "#111111",
-            "--error-bg": "#111111",
-            "--error-border": "#111111",
-            "--error-text": "#ffffff",
           } as React.CSSProperties
         }
       />
-    </>
+    </SidebarProvider>
   );
 }

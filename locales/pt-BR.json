@@ -4,8 +4,12 @@
     "description": "Catálogo de óculos de sol"
   },
   "admin": {
+    "nav": {
+      "dashboard": "Dashboard"
+    },
     "login": {
       "title": "Entrar",
+      "description": "Entre com seu e-mail para acessar o painel.",
       "emailLabel": "E-mail",
       "passwordLabel": "Senha",
       "submit": "Entrar",
@@ -15,10 +19,10 @@
     "dashboard": {
       "title": "Painel administrativo",
       "lastSyncLabel": "Última sincronização",
-      "neverSynced": "Nenhuma sincronização realizada ainda.",
       "activeProductsLabel": "Produtos ativos",
       "syncButton": "Sincronizar produtos",
       "syncing": "Sincronizando...",
+      "syncStarted": "Sincronização iniciada...",
       "syncSuccess": "Sincronização concluída.",
       "syncError": "Erro ao sincronizar. Tente novamente.",
       "logout": "Sair"
