@@ -5,27 +5,45 @@ description: Design tokens, radius, tipografia e componentes reutilizáveis do A
 
 # Design system — Akopil
 
-Fonte de verdade: [`docs/akopil-layout.md`](../../../docs/akopil-layout.md) (seção 1) e [`docs/akopil-layout-mockup.html`](../../../docs/akopil-layout-mockup.html).
+Fonte de verdade: [`docs/akopil-layout.md`](../../../docs/akopil-layout.md) (seção 1) e [`docs/akopil-layout-mockup.html`](../../../docs/akopil-layout-mockup.html) para a intenção visual. A implementação concreta é sempre **shadcn/ui** — ver seção "Componentes" abaixo antes de escrever qualquer JSX de UI.
 
 ## Regra inegociável
 
 Paleta **100% monocromática** — preto, branco, cinza. Nenhum estado (hover, ativo, erro, promoção, disabled) introduz cor de destaque. Promoção é comunicada só por texto riscado + badge outline preto/branco.
 
+**Exceção deliberada**: toasts de sucesso/erro (sonner) usam verde/vermelho reais — pedido explícito do usuário, só pra esse caso. Não generalizar essa exceção pra outros componentes.
+
+## Componentes — sempre shadcn/ui
+
+Todo componente novo de UI usa [shadcn/ui](https://ui.shadcn.com) (`npx shadcn@latest add <nome>`), base Radix, preset Nova. **Nunca escrever CSS/classes customizadas à mão quando existe um componente shadcn equivalente.** Se o componente necessário não existir no registry, parar e perguntar ao usuário antes de construir algo customizado — não assumir e seguir.
+
+Componentes instalados ficam em `components/ui/` (não editar a lógica interna, só os tokens em `app/globals.css` que eles consomem); composições próprias (ex: `components/app-sidebar.tsx`) ficam direto em `components/`.
+
+A inicialização usou a flag `--pointer`: todo `<button>`/`[role=button]` habilitado já recebe `cursor: pointer` globalmente (e cursor padrão quando desabilitado) — não adicionar `cursor-pointer` manualmente.
+
 ## Tokens
 
-| Token | Valor | Uso |
-|---|---|---|
-| `--black` | `#111111` | Texto, botões sólidos, bordas de destaque |
-| `--white` | `#ffffff` | Fundo geral |
-| `--gray-1` | `#f5f5f5` | Fundo de placeholders de imagem |
-| `--gray-2` | `#e5e5e5` | Bordas neutras, divisores |
-| `--gray-3` | `#a3a3a3` | Texto terciário (preço riscado, placeholders) |
-| `--gray-4` | `#525252` | Texto secundário (labels, preço em cinza) |
-| `--radius` | `6px` | Radius único, aplicado em **tudo** |
+Nomes semânticos do shadcn, remapeados em `app/globals.css` pros hex exatos do Akopil (não os cinzas genéricos do preset):
+
+| Token shadcn | Valor | Equivale a | Uso |
+|---|---|---|---|
+| `--background` / `--card` / `--popover` | `#ffffff` | branco | Fundo geral, cards, popovers |
+| `--foreground` / `--primary` | `#111111` | preto | Texto, botões sólidos, bordas de destaque |
+| `--primary-foreground` | `#ffffff` | branco | Texto sobre botão sólido |
+| `--secondary` / `--muted` / `--accent` | `#f5f5f5` | gray-1 | Fundos secundários, hover, placeholders |
+| `--muted-foreground` | `#525252` | gray-4 | Texto secundário (labels, preço em cinza) |
+| `--border` / `--input` | `#e5e5e5` | gray-2 | Bordas neutras, divisores |
+| `--ring` | `#111111` | preto | Anel de foco — nunca azul/colorido |
+| `--sidebar` | `#f5f5f5` | gray-1 | Fundo da sidebar do admin |
+| `--radius` | `0.375rem` (`6px`) | — | Radius único |
+
+Não existe ainda token equivalente a `gray-3` (`#a3a3a3`, texto terciário/riscado) — ao precisar (ex: preço riscado na Fase 3), adicionar em `:root`, não usar cor solta.
 
 ## Radius
 
-`6px` em toda superfície com borda — fotos, botões, pills, badges, drawer. Nunca `border-radius: 50%`/pill totalmente redondo, nunca `0` totalmente quadrado. Isso já foi decidido e revertido uma vez (pills e badge começaram em `100px` e foram unificados) — não reabrir essa decisão sem o usuário pedir explicitamente.
+`6px` (via `--radius`) em toda superfície com borda — fotos, botões, pills, badges, drawer. Nunca `border-radius: 50%`/pill totalmente redondo, nunca `0` totalmente quadrado. Isso já foi decidido e revertido uma vez (pills e badge começaram em `100px` e foram unificados) — não reabrir essa decisão sem o usuário pedir explicitamente.
+
+Garantido tecnicamente: a escala de radius do Tailwind (`--radius-sm` a `--radius-4xl`) foi achatada em `app/globals.css` pra todas resolverem em `var(--radius)` — nenhuma classe (`rounded-md`, `rounded-xl`, etc.) usada por um componente shadcn foge do `6px`.
 
 ## Tipografia
 
@@ -36,11 +54,13 @@ Uma família só: Inter (grotesco). Hierarquia por peso, não por família:
 
 ## Componentes reutilizados entre páginas
 
+Nomes como ".btn-solid"/".pill" descrevem a intenção visual do mockup — implementar com o componente shadcn equivalente (`Button variant="default"`/`"outline"`, `Badge`), nunca como classe CSS customizada.
+
 - Header — idêntico em home e produto (logo `AKOPIL`, nav Catálogo/Sobre, ícone de carrinho com contador que abre o drawer)
 - Footer — idêntico em home e produto (logo, atalho WhatsApp, copyright)
-- `.btn` / `.btn-outline` / `.btn-solid` — usados na página de produto e no drawer do carrinho
-- `.pill` — usado nos filtros da home (material/tag) e nas tags da página de produto
-- Drawer do carrinho — global, acionável de qualquer página, não é uma rota própria
+- Botão sólido/outline — usados na página de produto e no drawer do carrinho
+- Pill (material/tag) — usado nos filtros da home e nas tags da página de produto
+- Drawer do carrinho — global, acionável de qualquer página, não é uma rota própria (avaliar `Sheet` do shadcn, já instalado, em vez de construir do zero)
 
 ## Layout — Home
 

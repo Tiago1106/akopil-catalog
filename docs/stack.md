@@ -7,8 +7,9 @@ Decisões de tecnologia já fechadas para este projeto. Não trocar sem pergunta
 | Camada | Escolha | Notas |
 |---|---|---|
 | Framework | Next.js, App Router | Deploy na Vercel |
+| Componentes de UI | shadcn/ui (base Radix, preset Nova) + lucide-react (ícones) | Sempre shadcn — ver [design-system.md](design-system.md). Tokens remapeados pra paleta monocromática, radius achatado em `6px` único |
+| Notificações | sonner (toast) | Feedback de ações assíncronas (ex: sincronizar produtos); única exceção com cor real (verde/vermelho) na paleta monocromática |
 | Estado do carrinho | Zustand | Client-side, sem persistência em banco |
-| Estilo | CSS com design tokens únicos | Ver [design-system.md](design-system.md) — sem biblioteca de UI colorida/temática, paleta é monocromática por decisão |
 | Conteúdo/i18n | `pt-BR.json` | Nenhuma string em português hardcoded em componente — ver [i18n-content](../.claude/skills/i18n-content/SKILL.md) |
 
 ## Dados

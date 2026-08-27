@@ -22,17 +22,23 @@ Sem comentário no código a menos que explicitamente pedido.
 
 Sempre via query no Postgres — nunca carregar o catálogo inteiro no client para filtrar em memória.
 
+## Componentes de UI — sempre shadcn/ui
+
+Todo componente novo (botão, card, input, badge, sidebar, etc.) usa [shadcn/ui](https://ui.shadcn.com) (`npx shadcn@latest add <nome>`) — nunca CSS/classes customizadas à mão quando existe um componente equivalente no registry. Se o componente necessário não existir, perguntar ao usuário antes de construir algo customizado.
+
 ## Estrutura de projeto (Next.js App Router)
 
-Convenção a seguir ao criar rotas e componentes:
+Convenção em uso, confirmada na Fase 1:
 
 - `app/` — rotas (home, `[slug]` de produto, `/admin`, route handlers de sync/auth).
-- `components/` — componentes de UI compartilhados (Header, Footer, ProductCard, CartDrawer, Pill, Button).
-- `lib/` ou `server/` — client do Supabase (server-only vs. browser-safe separados explicitamente), integração com Notion (só usada pela rota de sync).
-- `store/` — Zustand store do carrinho.
-- `locales/` ou raiz do projeto — `pt-BR.json`.
+- `components/ui/` — componentes gerados pela CLI do shadcn, não editar a lógica interna.
+- `components/` (raiz) — composições próprias feitas com peças do shadcn (ex: `app-sidebar.tsx`).
+- `lib/supabase/` — clients do Supabase, server-safe (`server.ts`) e admin/service-role (`admin.ts`) separados explicitamente; `lib/utils.ts` — helper `cn()` do shadcn.
+- `lib/notion/`, `lib/sync/` — integração com Notion (só usada pela rota de sync) e orquestração do sync.
+- `store/` — Zustand store do carrinho (ainda não criado — Fase 2/3).
+- `locales/pt-BR.json` — todo texto visível ao usuário.
 
-Esta é uma convenção sugerida para manter o projeto organizado, não uma imposição rígida do briefing original — ajustar se o Claude Code identificar um padrão mais natural ao gerar a primeira rota, mas manter a separação client/server explícita para as chaves do Supabase.
+Mantida a separação client/server explícita para as chaves do Supabase.
 
 ## Escopo — o que este produto não é
 

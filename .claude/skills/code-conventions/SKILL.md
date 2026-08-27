@@ -17,7 +17,8 @@ Sem comentário no código a menos que o usuário peça explicitamente. Nomes be
 
 - Next.js App Router, deploy na Vercel.
 - Banco: Supabase (Postgres + Storage). Notion é só interface de cadastro — nunca lido em produção (ver [[notion-sync]]).
-- Estado do carrinho: Zustand.
+- UI: sempre shadcn/ui (ver [[design-system]]) — nunca CSS/classes customizadas quando existe componente equivalente no registry.
+- Estado do carrinho: Zustand (ainda não criado — Fase 2/3).
 - Checkout: 100% client-side, monta link `wa.me` — sem processamento de pagamento, sem gateway.
 
 ## Variáveis de ambiente

@@ -6,19 +6,20 @@ Regra de uso: antes de começar a trabalhar, ler a seção "Estado atual" e as �
 
 ## Estado atual
 
-**Fase ativa:** Fase 1 (fundação de dados) implementada e verificada ponta a ponta contra o Notion/Supabase reais. Próxima fase a começar: Fase 2 (Home).
+**Fase ativa:** Fase 1 (fundação de dados) implementada, verificada ponta a ponta contra o Notion/Supabase reais, e com o painel `/admin` reconstruído em shadcn/ui. Tudo publicado em `main`. Próxima fase a começar: Fase 2 (Home).
 
 **Concluído:**
 - Documentação de arquitetura, stack, data model, design system, convenções e referências em [`docs/`](.).
 - Skills operacionais em [`.claude/skills/`](../.claude/skills/) (design-system, i18n-content, notion-sync, code-conventions).
 - Decisões fechadas na etapa de documentação: env var `NEXT_PUBLIC_WHATSAPP_NUMBER` criada (valor ainda não fornecido), filtros de material/tag sempre dinâmicos via query (nunca lista fixa), domínio de produção `akopil.com.br`.
-- Projeto Next.js (App Router, TypeScript, Tailwind, npm) inicializado, conectado ao repositório GitHub `Tiago1106/akopil-catalog` (branch `main`, ainda sem push).
-- Fase 1 completa: rota de sync (`app/api/sync/route.ts` + `lib/sync/`, `lib/notion/`), painel `/admin` com login/logout via Supabase Auth, proteção via `proxy.ts` (Next 16 renomeou `middleware.ts` → `proxy.ts`). Ver entrada de log abaixo para detalhes de verificação.
+- Projeto Next.js (App Router, TypeScript, Tailwind v4, npm) inicializado, conectado e publicado no repositório GitHub `Tiago1106/akopil-catalog` (branch `main`).
+- Fase 1 completa: rota de sync (`app/api/sync/route.ts` + `lib/sync/`, `lib/notion/`), painel `/admin` com login/logout via Supabase Auth, proteção via `proxy.ts` (Next 16 renomeou `middleware.ts` → `proxy.ts`). Ver entradas de log abaixo para detalhes de verificação.
+- **shadcn/ui adotado como biblioteca de componentes do projeto** (base Radix, preset Nova) — tokens remapeados pro design system monocromático, radius achatado em `6px` único. Painel `/admin` reconstruído em cima disso: sidebar de verdade com ícones, dashboard com 2 cards (`Card`), login com `Field`/`Input`/`Button`, toasts (`sonner`) pro feedback do sync. Ver [design-system.md](design-system.md) e [design-system (skill)](../.claude/skills/design-system/SKILL.md) atualizados.
+- `git push` feito — histórico completo da Fase 1 + rebuild em shadcn está em `origin/main`.
 
 **Pendente:**
 - Valor de `NEXT_PUBLIC_WHATSAPP_NUMBER` (número real, formato internacional) — necessário só na Fase 4.
 - Criar o usuário do Supabase Auth (Dashboard → Authentication → Users) e testar o login em `/admin/login` manualmente — não foi feito pelo Claude Code por não criar contas/senhas em nome do usuário.
-- `git push` do trabalho da Fase 1 — não feito ainda, aguardando confirmação explícita.
 
 ## Roadmap de fases
 
@@ -72,4 +73,17 @@ Cada fase, ao concluir, deve ser marcada `[x]` aqui e ganhar uma entrada corresp
   - Não testado via deleção real de página no Notion (evitado por ser destrutivo no workspace do usuário) — o mecanismo de sweep (`missingIds`) é o mesmo update simples usado no teste de `Ativo`, então foi considerado coberto por revisão de código.
   - Corrigido durante a verificação: `proxy.ts` estava redirecionando `POST /api/sync` sem sessão pra uma página HTML (307) em vez de deixar a rota devolver `401` JSON — quebraria qualquer chamador não-browser. Ajustado pra `proxy.ts` só redirecionar rotas de página `/admin/*`, e a API mantém seu próprio check de auth.
 - **Não feito** (fora do escopo de código, decisão consciente): criar o usuário do Supabase Auth — pedido ao usuário fazer manualmente no dashboard, já que criar contas/senhas em nome do usuário é uma ação vedada. Login real em `/admin/login` com credencial de verdade ainda não foi testado.
-- `git push` não foi feito — só `git init`/commit local, aguardando confirmação explícita do usuário antes de publicar no GitHub.
+
+### 2026-08-20 — Rebuild do painel admin em shadcn/ui
+
+- Pedido do usuário: layout "de verdade" pro admin (sidebar com ícones), dashboard em `/admin` com 2 cards simples (última sincronização, quantidade de produtos), e **sempre usar componentes shadcn/ui** daqui pra frente — se um componente não existir na lib, confirmar antes de fazer algo customizado.
+- `npx shadcn@latest init` (base Radix, preset Nova, flag `--pointer` pra cursor pointer nativo em todo botão). Todos os componentes pedidos existiam no registry (`button`, `card`, `field`, `input`, `sidebar`, `separator` + dependências como `sheet`/`tooltip`/`skeleton`/`label`) — nenhuma confirmação extra foi necessária.
+- Reconciliado o preset (cores cinza genéricas em oklch, radius em escala) com o design system: `--background`/`--foreground`/`--primary`/`--border`/etc. remapeados pros hex exatos do Akopil, e toda a escala de radius (`sm` a `4xl`) achatada pra sempre resolver em `6px` — nenhum componente shadcn consegue fugir do radius único, não importa qual classe use.
+- Criado `components/app-sidebar.tsx`: sidebar colapsável, cabeçalho "AKOPIL", nav "Dashboard" (ícone `LayoutDashboard`, lucide-react), rodapé com "Sair" — estrutura pronta pra crescer com mais itens depois.
+- Dashboard (`/admin`) reescrita com 2 `Card`: última sincronização e produtos ativos. Quando não há valor (nunca sincronizou, contagem indisponível), mostra `-` em vez de frase — padrão pedido pelo usuário pra qualquer estado vazio.
+- Login reescrito no padrão exato de `Card`/`Field`/`FieldGroup`/`FieldLabel`/`Input`/`Button` que o usuário passou, em português, mantendo a mesma Server Action + `useActionState` de antes; erro de credencial via `FieldError`; botão com spinner (`Loader2` do lucide) enquanto a Server Action roda.
+- Botão de sincronizar migrado pro `Button` do shadcn, com spinner durante o request e toast neutro ("Sincronização iniciada...") disparado no clique, além dos toasts de sucesso/erro já existentes — pedido do usuário: toasts de resultado com cor de verdade (verde/vermelho, via `richColors` do sonner, não monocromático) posicionados no topo centralizado, 3 segundos.
+- **Bug encontrado e corrigido**: o `shadcn init` gerou uma linha circular em `globals.css` (`--font-sans: var(--font-sans)` dentro de `@theme inline`), o que invalida a custom property no CSS e faz o navegador cair no serif padrão — resultado: a fonte Inter parava de ser aplicada silenciosamente. Removida a linha duplicada; confirmado via `getComputedStyle` no navegador que `font-family` volta a resolver pra Inter.
+- Verificação: sidebar, cards, ícones, cores e radius computados checados numa página de teste isolada (nunca commitada); o botão de sincronizar de verdade testado com clique real (não só inspeção visual) — dispara `/api/sync`, mostra spinner, trata sucesso/erro via toast, reseta estado. Typecheck, lint e build limpos em cada passo.
+- Usuário validou e pediu commit + push — feito. Nada ficou pendente de aprovação.
+- **Próximo passo de convenção**: qualquer componente novo de UI (home/produto/carrinho nas próximas fases) deve ser construído com shadcn (`npx shadcn@latest add <nome>`) em vez de CSS/classes customizadas à mão, seguindo o mesmo remapeamento de tokens já feito aqui.
