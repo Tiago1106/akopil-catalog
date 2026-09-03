@@ -36,7 +36,14 @@
     "subtotal": "Subtotal",
     "remove": "Remover",
     "continueShopping": "Continuar comprando",
-    "checkout": "Finalizar compra"
+    "checkout": "Finalizar compra",
+    "whatsapp": {
+      "greeting": "Olá! Vim pelo site e gostaria de finalizar a compra.",
+      "itemLabel": "Item {n}:",
+      "total": "Valor total",
+      "discountedTotal": "Valor com desconto",
+      "value": "Valor"
+    }
   },
   "admin": {
     "nav": {

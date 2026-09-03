@@ -11,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { buildCheckoutUrl } from "@/lib/cart/checkout-message";
 import { formatPrice } from "@/lib/products/format-price";
 import { useCartStore, useCartSubtotal } from "@/store/cart";
 import ptBR from "@/locales/pt-BR.json";
@@ -24,6 +25,10 @@ export function CartDrawer() {
   const decrementItem = useCartStore((state) => state.decrementItem);
   const removeItem = useCartStore((state) => state.removeItem);
   const subtotal = useCartSubtotal();
+
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+  const checkoutUrl =
+    whatsappNumber && items.length > 0 ? buildCheckoutUrl(items, whatsappNumber) : null;
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => (open ? openCart() : closeCart())}>
@@ -102,9 +107,17 @@ export function CartDrawer() {
             <Button type="button" variant="outline" className="flex-1" onClick={closeCart}>
               {ptBR.cart.continueShopping}
             </Button>
-            <Button type="button" className="flex-1" disabled>
-              {ptBR.cart.checkout}
-            </Button>
+            {checkoutUrl ? (
+              <Button asChild className="flex-1">
+                <a href={checkoutUrl} target="_blank" rel="noopener noreferrer">
+                  {ptBR.cart.checkout}
+                </a>
+              </Button>
+            ) : (
+              <Button type="button" className="flex-1" disabled>
+                {ptBR.cart.checkout}
+              </Button>
+            )}
           </div>
         </SheetFooter>
       </SheetContent>

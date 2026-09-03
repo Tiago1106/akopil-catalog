@@ -6,7 +6,7 @@ Regra de uso: antes de começar a trabalhar, ler a seção "Estado atual" e as �
 
 ## Estado atual
 
-**Fase ativa:** Fases 1, 2 e 3 completas. Próxima fase a começar: Fase 4 (Finalização/WhatsApp) — depende do valor real de `NEXT_PUBLIC_WHATSAPP_NUMBER`, ainda não fornecido.
+**Fase ativa:** Fases 1, 2, 3 e 4 completas — roadmap original encerrado. Melhoria discutida e não implementada (fora do roadmap, aguardando decisão do usuário): SEO por produto (`generateMetadata` com `og:image`), já que o fluxo de checkout compartilha links de produto no WhatsApp e hoje isso não gera preview.
 
 **Concluído:**
 - Documentação de arquitetura, stack, data model, design system, convenções e referências em [`docs/`](.).
@@ -17,10 +17,10 @@ Regra de uso: antes de começar a trabalhar, ler a seção "Estado atual" e as �
 - **shadcn/ui adotado como biblioteca de componentes do projeto** (base Radix, preset Nova) — tokens remapeados pro design system monocromático, radius achatado em `6px` único. Painel `/admin` reconstruído em cima disso: sidebar de verdade com ícones, dashboard com 2 cards (`Card`), login com `Field`/`Input`/`Button`, toasts (`sonner`) pro feedback do sync. Ver [design-system.md](design-system.md) e [design-system (skill)](../.claude/skills/design-system/SKILL.md) atualizados.
 - **Fase 2 completa**: Home pública (`app/(site)/`) com header, carrossel "Mais vendidos", grid paginado com infinite scroll (lotes de 16), tags nos cards, footer. Filtros foram removidos por decisão do usuário (ver log) — não fazem parte do escopo atual. Ver entrada de log abaixo para detalhes.
 - **Fase 3 completa**: página de produto (`/produto/[slug]`), carrinho global via Zustand (`store/cart.ts`, agrupado por produto com quantidade, persistido em `localStorage`), drawer da sacola (`components/cart-drawer.tsx`, `Sheet` do shadcn), ícone de carrinho do header (fixo/sticky) funcional, único botão "Adicionar ao carrinho" (adiciona + abre o drawer), fotos com fallback correto (só mostra o que existe), carrossel de uma foto no mobile, lightbox em tela cheia no desktop. "Finalizar compra" fica `disabled` propositalmente — a lógica de verdade é Fase 4. Ver entrada de log abaixo para detalhes.
+- **Fase 4 completa**: mensagem do WhatsApp montada em `lib/cart/checkout-message.ts` (formato fechado no [i18n-content (skill)](../.claude/skills/i18n-content/SKILL.md)) e "Finalizar compra" (`components/cart-drawer.tsx`) virou link real pro `wa.me`. Ver entrada de log abaixo.
 - `git push` feito até a Fase 3 — histórico completo (Fase 1, rebuild em shadcn, Fase 2, Fase 3) está em `origin/main`.
 
 **Pendente:**
-- Valor de `NEXT_PUBLIC_WHATSAPP_NUMBER` (número real, formato internacional) — necessário só na Fase 4.
 - Criar o usuário do Supabase Auth (Dashboard → Authentication → Users) e testar o login em `/admin/login` manualmente — não foi feito pelo Claude Code por não criar contas/senhas em nome do usuário.
 - Confirmar visualmente (usuário, fora do ambiente automatizado) que o infinite scroll da Home carrega mais produtos ao rolar de verdade — o endpoint (`/api/products`) foi validado via `curl` e a lógica revisada, mas o `IntersectionObserver` não disparou no navegador automatizado desta sessão (mesma limitação já vista com `loading="lazy"` em imagens).
 
@@ -40,7 +40,7 @@ Ordem sugerida no kickoff original — cada fase só deve começar quando a ante
   Grid 2×2 de fotos, informações, dois botões (Adicionar ao carrinho / Abrir agora), drawer do carrinho (Continuar comprando / Finalizar compra — este último `disabled` até a Fase 4).
   Referência: [design-system.md](design-system.md).
 
-- [ ] **Fase 4 — Finalização**
+- [x] **Fase 4 — Finalização**
   Monta mensagem do WhatsApp (formato fechado) e abre `wa.me`.
   Referência: [i18n-content (skill)](../.claude/skills/i18n-content/SKILL.md).
 
@@ -125,3 +125,11 @@ Cada fase, ao concluir, deve ser marcada `[x]` aqui e ganhar uma entrada corresp
 - **Lightbox em tela cheia no desktop**: clicar numa foto da grade abre um `Dialog` em tela cheia com um carrossel novo, começando exatamente na foto clicada (`opts={{ startIndex }}` + `key={lightboxIndex}` forçando remount do embla a cada clique), com setas de navegação (`CarouselPrevious`/`CarouselNext`, radius `6px` sobrescrevendo o `rounded-full` padrão do componente, pra não abrir uma terceira exceção ao radius único sem necessidade).
 - **Dois bugs do componente `Dialog` do shadcn encontrados e corrigidos** (primeiro uso do Dialog no projeto — só tínhamos usado `Sheet` até aqui): (1) a animação `data-open:zoom-in-95` ficava travada em 95% de escala em vez de completar pra 100% — removida a classe de zoom, ficou só fade; (2) o carrossel dentro do modal colapsava com largura/altura zero porque o `Carousel` raiz tinha `flex items-center`, o que quebra o jeito como `CarouselContent` (que só recebe `className` no `div` interno, não no wrapper `overflow-hidden` que faz a medição do embla) calcula altura — corrigido usando `h-dvh` explícito (unidade absoluta, não depende de porcentagem de um ancestral com altura definida) em vez de `h-full`.
 - Typecheck, lint e build limpos em cada passo. Usuário validou e pediu pra fechar a fase + commit.
+
+### 2026-09-03 — Fase 4: mensagem do WhatsApp e checkout
+
+- Usuário forneceu o número real (`5516993804218`) em `NEXT_PUBLIC_WHATSAPP_NUMBER`, destravando a fase.
+- `lib/cart/checkout-message.ts`: `buildCheckoutMessage`/`buildCheckoutUrl` seguindo o formato fechado no [i18n-content (skill)](../.claude/skills/i18n-content/SKILL.md) — um "Item N" por linha do carrinho (nome prefixado com `NxN` quando `quantity > 1`, preço já multiplicado pela quantidade), separador entre seções, e as duas regras de total: se **algum** item tem desconto, mostra "Valor total" (soma usando `originalPrice ?? price`) e "Valor com desconto" (soma de `price`); se nenhum item tem desconto, mostra só uma linha "Valor". Labels novos em `locales/pt-BR.json` (`cart.whatsapp.*`), incluindo `itemLabel: "Item {n}:"` com um `.replace("{n}", ...)` simples (primeiro caso de interpolação no projeto, sem lib nova pra isso).
+- `components/cart-drawer.tsx`: "Finalizar compra" deixou de ser `disabled` fixo — vira link real (`<a target="_blank">` dentro do `Button asChild`) pro `wa.me` quando há `NEXT_PUBLIC_WHATSAPP_NUMBER` configurada e o carrinho não está vazio; continua `disabled` (Button normal, não link) nesses dois casos, evitando link quebrado.
+- Verificado no navegador com dado real via Supabase REST (`curl` filtrando `original_price=not.is.null`): item sem desconto gerou "Valor: R$ 299,00"; item com desconto e quantidade 2 gerou `2x Óculos Retrô 70s` / `~R$ 578,00~ → R$ 498,00`, e o total combinado ficou "Valor total: R$ 877,00" / "Valor com desconto: R$ 797,00" — bate com o cálculo esperado (299+578 e 299+498). Link decodificado e conferido caractere a caractere contra o formato do skill.
+- Typecheck, lint e `next build` limpos. Usuário perguntou se havia mais melhorias — sugerido SEO por produto (`generateMetadata`/`og:image`, útil por causa do compartilhamento de link no WhatsApp) como ideia fora do roadmap, não implementada, aguardando decisão. Usuário pediu pra commitar tudo.
