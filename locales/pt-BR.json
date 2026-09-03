@@ -22,6 +22,22 @@
     "whatsapp": "Falar no WhatsApp",
     "copyright": "© Akopil"
   },
+  "product": {
+    "eyebrow": "Óculos de sol",
+    "materialLabel": "Material",
+    "tagsLabel": "Tags",
+    "promotionBadge": "Promoção",
+    "addToCart": "Adicionar ao carrinho"
+  },
+  "cart": {
+    "title": "Sacola",
+    "description": "Itens adicionados à sacola de compras.",
+    "empty": "Sua sacola está vazia.",
+    "subtotal": "Subtotal",
+    "remove": "Remover",
+    "continueShopping": "Continuar comprando",
+    "checkout": "Finalizar compra"
+  },
   "admin": {
     "nav": {
       "dashboard": "Dashboard"

@@ -6,7 +6,7 @@ Regra de uso: antes de começar a trabalhar, ler a seção "Estado atual" e as �
 
 ## Estado atual
 
-**Fase ativa:** Fase 1 e Fase 2 completas. Próxima fase a começar: Fase 3 (Produto) — os cards da Home já linkam para `/produto/[slug]`, que hoje dá 404 até essa fase existir.
+**Fase ativa:** Fases 1, 2 e 3 completas. Próxima fase a começar: Fase 4 (Finalização/WhatsApp) — depende do valor real de `NEXT_PUBLIC_WHATSAPP_NUMBER`, ainda não fornecido.
 
 **Concluído:**
 - Documentação de arquitetura, stack, data model, design system, convenções e referências em [`docs/`](.).
@@ -16,7 +16,8 @@ Regra de uso: antes de começar a trabalhar, ler a seção "Estado atual" e as �
 - Fase 1 completa: rota de sync (`app/api/sync/route.ts` + `lib/sync/`, `lib/notion/`), painel `/admin` com login/logout via Supabase Auth, proteção via `proxy.ts` (Next 16 renomeou `middleware.ts` → `proxy.ts`). Ver entradas de log abaixo para detalhes de verificação.
 - **shadcn/ui adotado como biblioteca de componentes do projeto** (base Radix, preset Nova) — tokens remapeados pro design system monocromático, radius achatado em `6px` único. Painel `/admin` reconstruído em cima disso: sidebar de verdade com ícones, dashboard com 2 cards (`Card`), login com `Field`/`Input`/`Button`, toasts (`sonner`) pro feedback do sync. Ver [design-system.md](design-system.md) e [design-system (skill)](../.claude/skills/design-system/SKILL.md) atualizados.
 - **Fase 2 completa**: Home pública (`app/(site)/`) com header, carrossel "Mais vendidos", grid paginado com infinite scroll (lotes de 16), tags nos cards, footer. Filtros foram removidos por decisão do usuário (ver log) — não fazem parte do escopo atual. Ver entrada de log abaixo para detalhes.
-- `git push` feito — histórico completo da Fase 1, rebuild em shadcn, e Fase 2 estão em `origin/main`.
+- **Fase 3 completa**: página de produto (`/produto/[slug]`), carrinho global via Zustand (`store/cart.ts`, agrupado por produto com quantidade, persistido em `localStorage`), drawer da sacola (`components/cart-drawer.tsx`, `Sheet` do shadcn), ícone de carrinho do header (fixo/sticky) funcional, único botão "Adicionar ao carrinho" (adiciona + abre o drawer), fotos com fallback correto (só mostra o que existe), carrossel de uma foto no mobile, lightbox em tela cheia no desktop. "Finalizar compra" fica `disabled` propositalmente — a lógica de verdade é Fase 4. Ver entrada de log abaixo para detalhes.
+- `git push` feito até a Fase 3 — histórico completo (Fase 1, rebuild em shadcn, Fase 2, Fase 3) está em `origin/main`.
 
 **Pendente:**
 - Valor de `NEXT_PUBLIC_WHATSAPP_NUMBER` (número real, formato internacional) — necessário só na Fase 4.
@@ -35,8 +36,8 @@ Ordem sugerida no kickoff original — cada fase só deve começar quando a ante
   Header, carrossel de mais vendidos (`best_seller = true`), grid paginado (infinite scroll em lotes de ~16), tags nos cards, footer. Filtros dinâmicos **não foram implementados** — removidos do escopo por decisão do usuário (ver log).
   Referência: [design-system.md](design-system.md).
 
-- [ ] **Fase 3 — Produto**
-  Grid 2×2 de fotos, informações, dois botões (Adicionar ao carrinho / Abrir agora), drawer do carrinho (Continuar comprando / Finalizar compra).
+- [x] **Fase 3 — Produto**
+  Grid 2×2 de fotos, informações, dois botões (Adicionar ao carrinho / Abrir agora), drawer do carrinho (Continuar comprando / Finalizar compra — este último `disabled` até a Fase 4).
   Referência: [design-system.md](design-system.md).
 
 - [ ] **Fase 4 — Finalização**
@@ -102,4 +103,25 @@ Cada fase, ao concluir, deve ser marcada `[x]` aqui e ganhar uma entrada corresp
 - Ajuste de design a pedido do usuário: cards do carrossel aumentados de `200px` (valor do mockup original) pra `300px` — no layout de 4 colunas real, 200px ficava menor que os cards do grid, o oposto de "destaque" pra uma seção de mais vendidos.
 - **Ideia de CTA "adicionar ao carrinho" direto no card (inspirada no hover da Nike) discutida e descartada**: hover não existe em touch, e como mobile é a prioridade do produto (não desktop), o usuário decidiu não ter esse botão no card em nenhum dispositivo por enquanto — usuário entra no produto pra adicionar. Fica registrado como uma ideia considerada e rejeitada, não reabrir sem o usuário pedir de novo.
 - Da mesma ideia, só a parte de mostrar as **tags no card** (nome + tags + preço) foi mantida e implementada — `Badge` reinstalado, tags renderizadas entre nome e preço, testado em mobile (2 colunas) e desktop sem estourar o card.
+- Typecheck, lint e build limpos em cada passo. Usuário validou e pediu pra fechar a fase + commit.
+
+### 2026-09-03 — Fase 3: página de produto, carrinho (Zustand) e drawer
+
+- Planejado em plan mode (Plan agent): store de carrinho, `getProductBySlug`, página de produto, drawer, wiring do header. Duas decisões de negócio fechadas com o usuário antes do plano: **carrinho agrupa por produto com quantidade** (clicar "Adicionar" duas vezes incrementa uma linha, não duplica — diferente do mockup, que não tinha stepper; precisou desenhar esse controle do zero) e **"Finalizar compra" fica inerte** nesta fase (sem montar mensagem/abrir `wa.me` — isso é Fase 4, que também depende do número do WhatsApp ainda não configurado).
+- `npm install zustand`. Store em `store/cart.ts`: `items` (agrupados por `productId` com `quantity`), `isOpen`/`openCart`/`closeCart`, persistido em `localStorage` via `zustand/middleware persist` (só `items`, não `isOpen` — o drawer sempre começa fechado num load novo). Decrementar a quantidade até 0 remove a linha automaticamente (evita ter dois controles diferentes — stepper e "Remover" — pra sair do carrinho).
+- `getProductBySlug(slug)` em `lib/products/queries.ts`, mesmo padrão de `getProducts`/`getBestSellers`; usa `.maybeSingle()` e filtra `active = true`, cobrindo slug inexistente e produto desativado no mesmo caminho — página resolve com `notFound()` do Next.
+- Página de produto (`app/(site)/produto/[slug]/page.tsx`): grid 2×2 de fotos com o mesmo padrão de fallback "Sem foto" do card da Home, preço com riscado + badge "Promoção", campos Material/Tags/Descrição condicionais (só renderizam se o dado existir), dois botões (`product-actions.tsx`, Client Component) — "Adicionar ao carrinho" (outline) e "Abrir agora" (sólido, adiciona + abre o drawer).
+- **Bug estrutural encontrado e corrigido durante a verificação**: a página foi criada inicialmente em `app/produto/[slug]/`, fora do route group `app/(site)/` — como route groups só aplicam o layout às rotas aninhadas dentro da pasta, a página ficava sem header/footer/drawer (só o layout raiz). Corrigido movendo pra `app/(site)/produto/[slug]/` (URL não muda, `(site)` não entra no path). Vale lembrar disso ao criar qualquer rota nova do site público.
+- Drawer (`components/cart-drawer.tsx`): `Sheet` do shadcn controlado pelo estado do store, `SheetDescription` com `sr-only` só pra acessibilidade do Radix Dialog. Lista de itens com miniatura, preço de linha (unitário × quantidade), stepper +/- (`Minus`/`Plus` do lucide), "Remover" removendo a linha inteira. Subtotal somando todas as linhas. "Finalizar compra" fica `disabled` (não só inerte-mas-clicável) — um CTA sólido que não reage a clique pareceria bug; desabilitado comunica "ainda não disponível" com clareza.
+- Header (`components/site-header.tsx`) virou Client Component: ícone de carrinho agora abre o drawer, com contador circular (`rounded-full`) mostrando a soma das quantidades — **segunda exceção documentada ao radius único** (a primeira é a cor dos toasts), registrada em `design-system.md`: um indicador numérico pequeno não é uma "superfície" no sentido da regra.
+- Verificado com interação real no navegador (clique via JS direto no elemento — a mesma limitação de clique simulado por coordenada já vista antes voltou a acontecer, contornada do mesmo jeito): adicionar duas vezes agrupa em `quantity: 2`; decrementar até 0 remove a linha; "Remover" tira a linha inteira; subtotal recalcula certo; contador do header reflete a soma e some com o carrinho vazio; "Abrir agora" adiciona e abre o drawer na mesma ação; "Continuar comprando" fecha; carrinho persiste em `localStorage` entre navegações; slug inexistente devolve 404 real do Next; layout empilha em coluna única abaixo de `860px` (breakpoint `catalog`).
+- Typecheck, lint e build limpos em cada passo.
+
+**Refinamentos pedidos pelo usuário depois da primeira verificação (mesmo dia, antes de fechar a fase):**
+- **Um botão só**: "Abrir agora" e "Adicionar ao carrinho" faziam quase a mesma coisa — removido "Abrir agora", ficou só "Adicionar ao carrinho" (`product-actions.tsx`), que já adiciona ao carrinho e abre o drawer na mesma ação.
+- **Header fixo** (`sticky top-0 z-40 bg-background`) — o ícone do carrinho fica sempre acessível ao rolar a página.
+- **Fallback de foto corrigido**: a grade 2×2 preenchia os slots vazios com "Sem foto" mesmo quando o produto tinha 1-3 fotos reais. Agora mostra só as fotos que existem de verdade (sem preencher slot vazio), e o fallback "Sem foto" único só aparece quando o produto não tem **nenhuma** foto.
+- **Carrossel de fotos no mobile** (`product-photos.tsx`, novo): a grade 2×2 ficava pequena demais no mobile — trocada por um carrossel de uma foto por vez em largura cheia (sem espiar a próxima, `CarouselItem` no `basis-full` padrão), com bolinhas de posição sincronizadas via `CarouselApi`. Desktop continua com a grade 2×2.
+- **Lightbox em tela cheia no desktop**: clicar numa foto da grade abre um `Dialog` em tela cheia com um carrossel novo, começando exatamente na foto clicada (`opts={{ startIndex }}` + `key={lightboxIndex}` forçando remount do embla a cada clique), com setas de navegação (`CarouselPrevious`/`CarouselNext`, radius `6px` sobrescrevendo o `rounded-full` padrão do componente, pra não abrir uma terceira exceção ao radius único sem necessidade).
+- **Dois bugs do componente `Dialog` do shadcn encontrados e corrigidos** (primeiro uso do Dialog no projeto — só tínhamos usado `Sheet` até aqui): (1) a animação `data-open:zoom-in-95` ficava travada em 95% de escala em vez de completar pra 100% — removida a classe de zoom, ficou só fade; (2) o carrossel dentro do modal colapsava com largura/altura zero porque o `Carousel` raiz tinha `flex items-center`, o que quebra o jeito como `CarouselContent` (que só recebe `className` no `div` interno, não no wrapper `overflow-hidden` que faz a medição do embla) calcula altura — corrigido usando `h-dvh` explícito (unidade absoluta, não depende de porcentagem de um ancestral com altura definida) em vez de `h-full`.
 - Typecheck, lint e build limpos em cada passo. Usuário validou e pediu pra fechar a fase + commit.

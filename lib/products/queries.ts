@@ -16,6 +16,19 @@ export async function getBestSellers(): Promise<ProductRow[]> {
   return data ?? [];
 }
 
+export async function getProductBySlug(slug: string): Promise<ProductRow | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
 export type ProductPage = {
   items: ProductRow[];
   hasMore: boolean;

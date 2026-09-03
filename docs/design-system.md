@@ -38,6 +38,8 @@ Não existe token equivalente a `gray-3` (`#a3a3a3`, texto terciário/riscado) n
 
 Tecnicamente, isso é garantido em `app/globals.css`: a escala inteira de radius do Tailwind (`--radius-sm` até `--radius-4xl`) foi achatada para todas resolverem em `var(--radius)` — então não importa qual classe (`rounded-md`, `rounded-lg`, `rounded-xl`...) um componente shadcn use por padrão, o resultado visual é sempre `6px`.
 
+**Exceção deliberada**: o contador numérico do ícone de carrinho no header (`components/site-header.tsx`) é um círculo (`rounded-full`), replicando o `.cart-count` do mockup original. É a segunda exceção documentada à regra de radius único (a primeira é a cor dos toasts, acima) — um indicador numérico pequeno não é uma "superfície" no sentido da regra (card, botão, pill), então não reabre a decisão geral.
+
 ## Tipografia
 
 Uma família só (Inter no mockup, grotesco). Hierarquia por peso:
