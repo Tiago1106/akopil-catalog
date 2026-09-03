@@ -6,7 +6,7 @@ Regra de uso: antes de começar a trabalhar, ler a seção "Estado atual" e as �
 
 ## Estado atual
 
-**Fase ativa:** Fase 1 (fundação de dados) implementada, verificada ponta a ponta contra o Notion/Supabase reais, e com o painel `/admin` reconstruído em shadcn/ui. Tudo publicado em `main`. Próxima fase a começar: Fase 2 (Home).
+**Fase ativa:** Fase 1 e Fase 2 completas. Próxima fase a começar: Fase 3 (Produto) — os cards da Home já linkam para `/produto/[slug]`, que hoje dá 404 até essa fase existir.
 
 **Concluído:**
 - Documentação de arquitetura, stack, data model, design system, convenções e referências em [`docs/`](.).
@@ -15,11 +15,13 @@ Regra de uso: antes de começar a trabalhar, ler a seção "Estado atual" e as �
 - Projeto Next.js (App Router, TypeScript, Tailwind v4, npm) inicializado, conectado e publicado no repositório GitHub `Tiago1106/akopil-catalog` (branch `main`).
 - Fase 1 completa: rota de sync (`app/api/sync/route.ts` + `lib/sync/`, `lib/notion/`), painel `/admin` com login/logout via Supabase Auth, proteção via `proxy.ts` (Next 16 renomeou `middleware.ts` → `proxy.ts`). Ver entradas de log abaixo para detalhes de verificação.
 - **shadcn/ui adotado como biblioteca de componentes do projeto** (base Radix, preset Nova) — tokens remapeados pro design system monocromático, radius achatado em `6px` único. Painel `/admin` reconstruído em cima disso: sidebar de verdade com ícones, dashboard com 2 cards (`Card`), login com `Field`/`Input`/`Button`, toasts (`sonner`) pro feedback do sync. Ver [design-system.md](design-system.md) e [design-system (skill)](../.claude/skills/design-system/SKILL.md) atualizados.
-- `git push` feito — histórico completo da Fase 1 + rebuild em shadcn está em `origin/main`.
+- **Fase 2 completa**: Home pública (`app/(site)/`) com header, carrossel "Mais vendidos", grid paginado com infinite scroll (lotes de 16), tags nos cards, footer. Filtros foram removidos por decisão do usuário (ver log) — não fazem parte do escopo atual. Ver entrada de log abaixo para detalhes.
+- `git push` feito — histórico completo da Fase 1, rebuild em shadcn, e Fase 2 estão em `origin/main`.
 
 **Pendente:**
 - Valor de `NEXT_PUBLIC_WHATSAPP_NUMBER` (número real, formato internacional) — necessário só na Fase 4.
 - Criar o usuário do Supabase Auth (Dashboard → Authentication → Users) e testar o login em `/admin/login` manualmente — não foi feito pelo Claude Code por não criar contas/senhas em nome do usuário.
+- Confirmar visualmente (usuário, fora do ambiente automatizado) que o infinite scroll da Home carrega mais produtos ao rolar de verdade — o endpoint (`/api/products`) foi validado via `curl` e a lógica revisada, mas o `IntersectionObserver` não disparou no navegador automatizado desta sessão (mesma limitação já vista com `loading="lazy"` em imagens).
 
 ## Roadmap de fases
 
@@ -29,8 +31,8 @@ Ordem sugerida no kickoff original — cada fase só deve começar quando a ante
   Schema (já existe no Supabase) + rota de sync (Notion → Supabase, full resync) + painel `/admin` com login (Supabase Auth) e botão de sincronizar.
   Referência: [architecture.md](architecture.md), [data-model.md](data-model.md), [notion-sync (skill)](../.claude/skills/notion-sync/SKILL.md).
 
-- [ ] **Fase 2 — Home**
-  Header, carrossel de mais vendidos (`best_seller = true`), filtros dinâmicos, grid paginado (infinite scroll em lotes de ~16), footer.
+- [x] **Fase 2 — Home**
+  Header, carrossel de mais vendidos (`best_seller = true`), grid paginado (infinite scroll em lotes de ~16), tags nos cards, footer. Filtros dinâmicos **não foram implementados** — removidos do escopo por decisão do usuário (ver log).
   Referência: [design-system.md](design-system.md).
 
 - [ ] **Fase 3 — Produto**
@@ -87,3 +89,17 @@ Cada fase, ao concluir, deve ser marcada `[x]` aqui e ganhar uma entrada corresp
 - Verificação: sidebar, cards, ícones, cores e radius computados checados numa página de teste isolada (nunca commitada); o botão de sincronizar de verdade testado com clique real (não só inspeção visual) — dispara `/api/sync`, mostra spinner, trata sucesso/erro via toast, reseta estado. Typecheck, lint e build limpos em cada passo.
 - Usuário validou e pediu commit + push — feito. Nada ficou pendente de aprovação.
 - **Próximo passo de convenção**: qualquer componente novo de UI (home/produto/carrinho nas próximas fases) deve ser construído com shadcn (`npx shadcn@latest add <nome>`) em vez de CSS/classes customizadas à mão, seguindo o mesmo remapeamento de tokens já feito aqui.
+
+### 2026-08-28 — Fase 2: Home pública
+
+- Planejado em plan mode (Explore/Plan agent): route group `app/(site)/` isolando Header/Footer do site público do layout do `/admin`; camada de dados em `lib/products/` reusando `lib/supabase/server.ts`; infinite scroll via Route Handler (`app/api/products/route.ts`), não Server Action, por ser leitura pura/GET; breakpoint custom `860px` (`--breakpoint-catalog`) porque o mockup não bate com `md`/`lg` do Tailwind; token `--gray-3` adicionado (preço riscado, usado já na Home, corrigindo nota dos docs que dizia "só Fase 3").
+- Implementado: `components/site-header.tsx`, `components/site-footer.tsx` (link do WhatsApp omitido quando `NEXT_PUBLIC_WHATSAPP_NUMBER` não está setada — nunca `wa.me/undefined`), `app/(site)/page.tsx` (Server Component, `Carousel` do shadcn pro "Mais vendidos"), `app/(site)/product-card.tsx`, `app/(site)/product-grid.tsx` (Client Component, `IntersectionObserver` + fetch pro `/api/products`).
+- **Filtros implementados e depois removidos**: o plano original incluía filtros multi-select (material/tag/promoção, combinação OR dentro da categoria + AND entre categorias — decisão do usuário antes do plano) com pills via `Badge`, opções dinâmicas via `select distinct`. Implementado, funcionando, e depois o usuário pediu pra remover tudo ("não vamos ter os filtros por agora") — revertido: `filter-pills.tsx` e `lib/products/filters.ts` apagados, `getFilteredProducts`/`getFilterOptions` simplificados pra um único `getProducts()` sem filtro, `Badge` removido (e depois reinstalado pras tags do card). A intenção de filtro dinâmico continua documentada em `data-model.md`/`design-system.md` como desenho futuro, não foi descartada — só adiada.
+- **Bug de dado encontrado durante a verificação end-to-end** (não é bug de código): a leitura pública (`anon`) retornava **zero produtos sem erro nenhum**, enquanto o client admin (service role) via a linha normalmente — assinatura clássica de RLS habilitado sem nenhuma policy (diferente do problema de `GRANT` ausente da Fase 1, que dava erro explícito `42501`). Corrigido pelo usuário no SQL Editor: `create policy "Public read access to active products" on public.products for select to anon, authenticated using (active = true);` — na prática uma melhoria sobre o estado anterior (sem RLS nenhum), já que agora a leitura pública só enxerga `active = true` garantido pelo próprio banco.
+- **Erro de imagem investigado**: `dangerouslyAllowSVG is disabled` no `next/image` — rastreado até um objeto antigo no Storage servido com `Content-Type: image/svg+xml` antes do fix de RLS. Depois de limpar `.next/cache/images` e confirmar via `curl -I` que o Storage já servia `image/jpeg` corretamente, o erro não voltou a ocorrer.
+- Populado o catálogo real de teste a pedido do usuário: 24 produtos criados no Notion via MCP (mais o "Oculos teste" que já existia = 25), incluindo adicionar as opções que faltavam nos selects do Notion (`Material`: Metal, Titânio; `Tags`: Feminino, Unissex, Polarizado — só existiam Acetato/Oferta/Masculino) via `ALTER COLUMN ... SET SELECT(...)`/`MULTI_SELECT(...)`, e sincronizado (25 upsertados, 0 erro).
+- Verificado com dado real: carrossel de mais vendidos com a contagem certa, grid paginando exatamente 16 por página, preço riscado em promoção, fallback "Sem foto" nos produtos sem imagem. Paginação (`offset=16` devolvendo os 9 restantes, `hasMore:false` no fim) confirmada via `curl` direto no endpoint — o disparo automático do `IntersectionObserver` ao rolar não foi possível confirmar no navegador automatizado (mesma limitação de lazy-loading já registrada na Fase 1/rebuild admin), fica pendente de confirmação visual do usuário.
+- Ajuste de design a pedido do usuário: cards do carrossel aumentados de `200px` (valor do mockup original) pra `300px` — no layout de 4 colunas real, 200px ficava menor que os cards do grid, o oposto de "destaque" pra uma seção de mais vendidos.
+- **Ideia de CTA "adicionar ao carrinho" direto no card (inspirada no hover da Nike) discutida e descartada**: hover não existe em touch, e como mobile é a prioridade do produto (não desktop), o usuário decidiu não ter esse botão no card em nenhum dispositivo por enquanto — usuário entra no produto pra adicionar. Fica registrado como uma ideia considerada e rejeitada, não reabrir sem o usuário pedir de novo.
+- Da mesma ideia, só a parte de mostrar as **tags no card** (nome + tags + preço) foi mantida e implementada — `Badge` reinstalado, tags renderizadas entre nome e preço, testado em mobile (2 colunas) e desktop sem estourar o card.
+- Typecheck, lint e build limpos em cada passo. Usuário validou e pediu pra fechar a fase + commit.

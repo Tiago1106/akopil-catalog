@@ -3,6 +3,25 @@
     "title": "Akopil",
     "description": "Catálogo de óculos de sol"
   },
+  "nav": {
+    "catalog": "Catálogo",
+    "about": "Sobre"
+  },
+  "home": {
+    "bestSellers": "Mais vendidos",
+    "allProducts": "Todos os óculos",
+    "grid": {
+      "empty": "Nenhum produto encontrado.",
+      "noImage": "Sem foto",
+      "loadingMore": "Carregando mais produtos ao rolar…",
+      "loadMoreError": "Erro ao carregar mais produtos.",
+      "retry": "Tentar novamente"
+    }
+  },
+  "footer": {
+    "whatsapp": "Falar no WhatsApp",
+    "copyright": "© Akopil"
+  },
   "admin": {
     "nav": {
       "dashboard": "Dashboard"

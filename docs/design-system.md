@@ -52,8 +52,8 @@ Uma família só (Inter no mockup, grotesco). Hierarquia por peso:
 
 1. **Header** — logo `AKOPIL`, nav (Catálogo / Sobre), ícone de carrinho com contador; clique abre o drawer.
 2. **Mais vendidos** — carrossel horizontal (scroll, sem paginação), filtra `best_seller = true`.
-3. **Filtros** — pills por material/tag + "Todos". Pill ativa preenche em preto. Lista de materiais/tags é sempre dinâmica (valores distintos de `products` no Supabase, vindos do Notion) — nunca uma lista fixa no código; ver [data-model.md](data-model.md).
-4. **Grid de produtos** — 4 colunas desktop / 2 mobile. Card: imagem, nome, preço (riscado quando há `original_price`). Infinite scroll em lotes de ~16.
+3. ~~**Filtros** — pills por material/tag + "Todos".~~ **Não implementado na Fase 2** — removido do escopo por decisão do usuário (ver `docs/sessions.md`, log de 2026-08-28). A intenção de design continua válida como referência futura caso seja retomado: pills por material/tag + "Todos", pill ativa preenche em preto, lista sempre dinâmica (valores distintos de `products`, vindos do Notion) — nunca uma lista fixa no código; ver [data-model.md](data-model.md).
+4. **Grid de produtos** — 4 colunas desktop / 2 mobile. Card: imagem, nome, tags, preço (riscado quando há `original_price`). Infinite scroll em lotes de ~16.
 5. **Footer** — logo, atalho WhatsApp, copyright.
 
 ## Estrutura — Produto

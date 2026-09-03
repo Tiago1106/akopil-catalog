@@ -64,7 +64,7 @@ Nomes como ".btn-solid"/".pill" descrevem a intenção visual do mockup — impl
 
 ## Layout — Home
 
-Ordem vertical fixa: Header → carrossel "Mais vendidos" (scroll horizontal, sem paginação, filtra `best_seller = true`) → Filtros (pills, "Todos" + material/tag, pill ativa preenche em preto) → Grid de produtos (4 colunas desktop / 2 mobile, infinite scroll em lotes de ~16) → Footer.
+Ordem vertical: Header → carrossel "Mais vendidos" (scroll horizontal, sem paginação, filtra `best_seller = true`) → Grid de produtos (imagem, nome, tags, preço; 4 colunas desktop / 2 mobile, infinite scroll em lotes de ~16) → Footer. Filtros (pills "Todos" + material/tag) fazem parte do design original mas **não foram implementados** — removidos do escopo da Fase 2 por decisão do usuário (`docs/sessions.md`); não assumir que existem.
 
 ## Layout — Produto
 
