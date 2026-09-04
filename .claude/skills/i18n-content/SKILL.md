@@ -17,7 +17,7 @@ Sempre via `Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })` 
 
 ## Mensagem do WhatsApp (finalizar compra)
 
-Fonte de verdade: [`docs/akopil-layout.md`](../../../docs/akopil-layout.md) (seção 6).
+Fonte de verdade: [`documentation.md`](../../../documentation.md) (seção "Mensagem do WhatsApp").
 
 Decisão fechada: **sempre todos os itens do carrinho numa mensagem só** — não existe finalizar por item individual.
 

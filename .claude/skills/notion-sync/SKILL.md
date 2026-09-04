@@ -5,7 +5,7 @@ description: Comportamento do sync Notion → Supabase do Akopil — full resync
 
 # Sync Notion → Supabase — Akopil
 
-Fonte de verdade: [`docs/akopil-database.md`](../../../docs/akopil-database.md) (seções 4 a 10).
+Fonte de verdade: [`documentation.md`](../../../documentation.md) (seções "Data model" e "Visão geral").
 
 ## Papel de cada sistema
 

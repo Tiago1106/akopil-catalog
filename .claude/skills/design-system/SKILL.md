@@ -5,7 +5,7 @@ description: Design tokens, radius, tipografia e componentes reutilizáveis do A
 
 # Design system — Akopil
 
-Fonte de verdade: [`docs/akopil-layout.md`](../../../docs/akopil-layout.md) (seção 1) e [`docs/akopil-layout-mockup.html`](../../../docs/akopil-layout-mockup.html) para a intenção visual. A implementação concreta é sempre **shadcn/ui** — ver seção "Componentes" abaixo antes de escrever qualquer JSX de UI.
+Fonte de verdade: [`documentation.md`](../../../documentation.md) (seção "Design system"). A implementação concreta é sempre **shadcn/ui** — ver seção "Componentes" abaixo antes de escrever qualquer JSX de UI.
 
 ## Regra inegociável
 
@@ -64,7 +64,7 @@ Nomes como ".btn-solid"/".pill" descrevem a intenção visual do mockup — impl
 
 ## Layout — Home
 
-Ordem vertical: Header → carrossel "Mais vendidos" (scroll horizontal, sem paginação, filtra `best_seller = true`) → Grid de produtos (imagem, nome, tags, preço; 4 colunas desktop / 2 mobile, infinite scroll em lotes de ~16) → Footer. Filtros (pills "Todos" + material/tag) fazem parte do design original mas **não foram implementados** — removidos do escopo da Fase 2 por decisão do usuário (`docs/sessions.md`); não assumir que existem.
+Ordem vertical: Header → carrossel "Mais vendidos" (scroll horizontal, sem paginação, filtra `best_seller = true`) → Grid de produtos (imagem, nome, tags, preço; 4 colunas desktop / 2 mobile, infinite scroll em lotes de ~16) → Footer. Filtros (pills "Todos" + material/tag) fazem parte do design original mas **não foram implementados** — removidos do escopo da Fase 2 por decisão do usuário (`documentation.md`); não assumir que existem.
 
 ## Layout — Produto
 

@@ -18,9 +18,7 @@ export function SiteHeader() {
         <Link href="/" className="text-sm font-medium">
           {ptBR.nav.catalog}
         </Link>
-        <Link href="#" className="text-sm font-medium">
-          {ptBR.nav.about}
-        </Link>
+        {/* "Sobre" desativado até existir a página /sobre — ver documentation.md, Status do projeto */}
       </nav>
       <button
         type="button"
