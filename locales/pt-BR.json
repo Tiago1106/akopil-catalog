@@ -47,7 +47,9 @@
   },
   "admin": {
     "nav": {
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "banners": "Banners",
+      "viewCatalog": "Ver catálogo"
     },
     "login": {
       "title": "Entrar",
@@ -68,6 +70,49 @@
       "syncSuccess": "Sincronização concluída.",
       "syncError": "Erro ao sincronizar. Tente novamente.",
       "logout": "Sair"
+    },
+    "banners": {
+      "title": "Banners",
+      "description": "Imagens em carrossel automático na Home, entre \"Mais vendidos\" e o catálogo.",
+      "addButton": "Adicionar imagens",
+      "imageSizeLabel": "Tamanho recomendado das imagens",
+      "imageSizeMobile": "Mobile (quadrada)",
+      "imageSizeMobileValue": "1080 × 1080px",
+      "imageSizeDesktop": "Desktop (faixa larga, 21:6)",
+      "imageSizeDesktopValue": "2100 × 600px",
+      "listEmpty": "Nenhum banner ainda.",
+      "namePlaceholder": "Nome (só pra identificar aqui)",
+      "linkPlaceholder": "Link (opcional) — produto ou URL",
+      "linkTagProduct": "Produto",
+      "linkTagExternal": "Externo",
+      "linkTagNone": "Sem link",
+      "desktopImageLabel": "Versão desktop",
+      "desktopImageAdd": "Adicionar versão desktop",
+      "desktopImageRemove": "Remover versão desktop",
+      "active": "Ativo",
+      "inactive": "Inativo",
+      "delete": "Remover",
+      "updateError": "Erro ao salvar. Tente novamente.",
+      "deleteError": "Erro ao remover. Tente novamente.",
+      "reorderError": "Erro ao reordenar. Tente novamente.",
+      "deleteConfirm": {
+        "title": "Remover este banner?",
+        "description": "A imagem é apagada do Storage e não tem como desfazer.",
+        "cancel": "Cancelar",
+        "confirm": "Remover"
+      },
+      "modal": {
+        "title": "Adicionar imagens",
+        "description": "Depois de enviar, confira o nome de cada uma antes de adicionar.",
+        "dropzoneHint": "Arraste as imagens aqui ou clique para selecionar",
+        "dropzoneFormats": "PNG ou JPG, várias de uma vez",
+        "uploading": "Enviando…",
+        "done": "Pronto",
+        "error": "Erro no envio",
+        "confirmEmpty": "Adicionar",
+        "confirmSingular": "Adicionar {n} imagem",
+        "confirmPlural": "Adicionar {n} imagens"
+      }
     }
   }
 }

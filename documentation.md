@@ -33,9 +33,10 @@ Checklist rápido de "o que já existe" vs. "o que falta". Atualizar aqui a cada
 - [x] Versionamento do projeto (SemVer a partir de `1.0.0`, `CHANGELOG.md`)
 - [x] Documentação consolidada num arquivo único (`documentation.md`)
 - [x] Link "Sobre" removido do header (comentado em `components/site-header.tsx`) — sem página `/sobre` ainda, nav mostra só "Catálogo"
+- [x] Banner de imagens de promoções: tabela `banners` + bucket `banner-images`, admin `/admin/banners` (upload multi-arquivo em modal, nome editável, drag-and-drop desktop-only, ativo/inativo, link opcional, confirmação antes de excluir), carrossel autoplay na Home entre "Mais vendidos" e o grid — em verificação final (ver pendência abaixo)
 
 ### Pendente
-- [ ] Banner de imagens de promoções na home — precisa decisão de fonte de dado (Notion? upload manual?) e destino do link antes de implementar
+- [ ] Verificar o fluxo completo de banners no navegador com login real (upload, reordenar, editar, excluir) — ver [Log de decisões](#log-de-decisões)
 - [ ] SEO por produto (`generateMetadata` com `og:image`) — link de produto é compartilhado no WhatsApp e hoje não gera preview
 - [ ] `sitemap.ts` / `robots.ts` / `loading.tsx` / `error.tsx` — arquivos do Next.js que ajudam o Google a achar as páginas (`sitemap`/`robots`), mostram uma tela de carregamento enquanto a página busca dado (`loading`) e uma tela amigável quando dá erro (`error`). Nenhum existe ainda.
 - [ ] Analytics (ex: Vercel Analytics) — mostraria quantas pessoas visitam o site e quais produtos são mais vistos. Não existe hoje.
@@ -158,6 +159,52 @@ create index products_best_seller_idx on products (best_seller) where best_selle
 insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true);
 ```
+
+### Tabela `banners`
+
+Imagens do carrossel de promoções da Home, cadastradas direto no admin (upload de arquivo) — não passa pelo Notion.
+
+```sql
+create table public.banners (
+  id                 uuid primary key default gen_random_uuid(),
+  image_url          text not null,
+  desktop_image_url  text,
+  link               text,
+  name               text not null,
+  active             boolean not null default true,
+  position           integer not null default 0,
+  created_at         timestamptz not null default now()
+);
+
+create index banners_position_idx on public.banners (position);
+create index banners_active_idx on public.banners (active);
+
+alter table public.banners enable row level security;
+
+create policy "Public read access to active banners"
+on public.banners for select
+to anon, authenticated
+using (active = true);
+
+grant select, insert, update, delete on public.banners to service_role;
+grant select on public.banners to anon, authenticated;
+
+insert into storage.buckets (id, name, public)
+values ('banner-images', 'banner-images', true);
+```
+
+| Campo | Notas |
+|---|---|
+| `image_url` | URL pública no bucket `banner-images`, subida direto do admin (não vem do Notion). Usada no carrossel mobile (formato quadrado). |
+| `desktop_image_url` | Opcional. Versão da mesma promoção pensada pro formato largo do carrossel desktop (`21/6`) — evita recortar uma imagem quadrada numa faixa larga. Sem ela, o desktop cai de volta pra `image_url` (recortada). Upload avulso por linha em `/admin/banners`, não faz parte do lote inicial. |
+| `link` | Opcional. Vazio = imagem só decorativa; começa com `http` = link externo (`target="_blank"`); caso contrário = rota interna (`next/link`, ex: `/produto/slug`). |
+| `name` | Só identifica a imagem no admin — nunca aparece como copy visível no site, só como `alt` da imagem. |
+| `position` | Ordem no carrossel, controlada por drag-and-drop no admin (`/admin/banners`, desktop-only por decisão do usuário). |
+| `active` | Controla o que aparece no carrossel público, sem apagar a imagem. |
+
+Escrita sempre via `createAdminClient()` (service role) em `app/api/banners/*` — mesmo padrão de `products`/sync.
+
+**Nota importante (custou um bug em produção — ver [Log de decisões](#log-de-decisões)):** toda tabela nova precisa de **dois passos** de permissão, não um só: a *policy* de RLS (`create policy ...`) e o **`GRANT` de tabela** (`grant select on ... to anon, authenticated`, `grant ... to service_role`). RLS sozinha não é suficiente — sem o `GRANT`, toda query falha com `permission denied for table X` (`42501`), mesmo com a policy certa. Isso já tinha acontecido com `products` na Fase 1 e se repetiu com `banners` por esse `GRANT` não estar documentado aqui antes. **Sempre incluir os dois no script de setup de qualquer tabela nova.**
 
 | Campo | Notas |
 |---|---|
@@ -316,3 +363,14 @@ Entradas novas de decisão de produto/arquitetura entram aqui, mais recente prim
 ### 2026-09-04
 
 - Consolidação de documentação: pasta `docs/` (10 arquivos, com bastante duplicação com `.claude/skills/`) apagada, substituída por este arquivo único (`documentation.md`) na raiz. `README.md` reescrito com conteúdo real do projeto; versionamento (SemVer) adotado a partir de `1.0.0`; `CHANGELOG.md` criado.
+
+### 2026-09-05 — Banner de imagens de promoções
+
+- UX desenhada e validada com o usuário via protótipo HTML interativo (`scratch/banners-admin-mockup.html`, publicado como Artifact, várias rodadas de feedback) antes de qualquer código real — fluxo de upload em modal (dropzone multi-arquivo, nome sugerido a partir do arquivo e editável assim que o upload termina, confirmação em lote), drag-and-drop **desktop-only** na lista do admin (decisão explícita: admin é usado no computador, público final é majoritariamente mobile).
+- Planejado em plan mode (2 agentes Explore + 1 agente Plan) antes de implementar, reaproveitando os padrões exatos já existentes (upload pro Storage de `lib/sync/images.ts`, Route Handler de `app/api/sync/route.ts`, `Carousel`/`Dialog` de `product-photos.tsx`). Três decisões de UX fechadas com o usuário antes do plano final: progresso de upload é só shimmer indeterminado (sem XHR, o projeto só usa `fetch`), exclusão de banner pede confirmação (`AlertDialog`, apaga o arquivo do Storage de vez), carrossel público é formato hero/largo (`basis-full`, `AspectRatio` `21/6`) — diferente dos cards de "Mais vendidos".
+- Implementado: tabela `banners` + bucket `banner-images`; `lib/banners/` (queries + storage helper); `app/api/banners/*` (upload, criação em lote, edição/exclusão por id, reorder) como Route Handlers (não Server Action — primeiro upload de arquivo binário do projeto, sem precedente de Server Action pra isso); admin `/admin/banners` (`banners-manager.tsx` dono do estado, `banner-list.tsx` com `@dnd-kit`, `banner-row.tsx`, `upload-dialog.tsx` com o componente `Attachment` do shadcn — resolveu direto via `npx shadcn add attachment`, sem precisar montar à mão); `BannerCarousel` na Home.
+- **Bug encontrado no `npx shadcn@latest add`**: os 3 componentes novos instalados (`switch`, `alert-dialog`, `attachment`) vieram importando `cn` do pacote npm `cn` em vez de `@/lib/utils` (que já tem o `cn` do projeto, via `clsx`+`tailwind-merge`) — um desalinhamento entre a versão mais nova da CLI do shadcn (resolvida via `npx`, sem estar pinada no projeto) e o `components.json` já configurado (alias `utils: "@/lib/utils"`). Corrigido nos 3 arquivos e o pacote `cn` desinstalado — se isso acontecer de novo ao instalar componente novo do shadcn, conferir os imports antes de dar como pronto.
+- **Bug de dado real, mesma causa-raiz já vista na Fase 1 com `products`**: RLS sozinha não bastou pra tabela `banners` nova — faltava o `GRANT` de tabela (`grant select on ... to anon, authenticated`), então toda leitura pública quebrava com `permission denied for table banners` (`42501`), mesmo com a policy certa. Esse `GRANT` não estava no SQL do plano original porque a informação só existia no log de sessões antigo (apagado na consolidação da documentação) — adicionado de volta aqui, na seção [Data model](#data-model), como nota permanente pra qualquer tabela nova futura.
+- Build e lint rodados a cada etapa. Um erro de lint real pego nesse processo: `react-hooks/set-state-in-effect` no hook de debounce de nome/link (`banner-row.tsx`) — `useEffect(() => setLocal(value), [value])` pra ressincronizar estado local quando a prop muda é exatamente o padrão que essa regra proíbe; corrigido pro padrão recomendado pelo React (ajustar o estado durante o render, comparando com o valor anterior guardado, em vez de useEffect).
+- Verificação: `npm run build`/`npm run lint` limpos, as 5 rotas novas (`/api/banners*`) devolvem `401` sem cookie de sessão, Home confirmada carregando sem erro depois do fix de `GRANT` (seção do carrossel corretamente ausente com 0 banners cadastrados). Usuário testou o fluxo completo do admin de verdade (upload, reordenar, editar, excluir) — funcionou.
+- **Ajuste pós-teste com dado real**: usuário subiu uma imagem 1:1 de teste e viu o carrossel do desktop (formato `21/6`) cortando a imagem de forma feia (topo/base sumindo). Em vez de forçar um recorte único pra dois formatos bem diferentes (quadrado no mobile, faixa larga no desktop), adicionada coluna opcional `desktop_image_url` — cada banner pode ter uma segunda imagem pensada pro formato widescreen. Decisão de UX fechada com o usuário: **não** virou um segundo upload obrigatório nem mudou o modal em lote já testado — cada linha da lista em `/admin/banners` ganhou um botão pequeno opcional "Adicionar versão desktop" (ícone `Monitor`, upload avulso reusando a mesma rota `/api/banners/upload`); sem preencher, o desktop cai de volta pra `image_url` recortada (comportamento anterior, nunca quebra). Carrossel público (`banner-carousel.tsx`) agora renderiza duas `<Image>` (uma `catalog:hidden` quadrada, outra `hidden catalog:block` larga) em vez de uma única `div` com `aspect-*` responsivo — mesmo padrão de blocos mobile/desktop separados já usado em `product-photos.tsx`.

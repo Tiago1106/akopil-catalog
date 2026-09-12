@@ -1,11 +1,17 @@
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { getBanners } from "@/lib/banners/queries";
 import { getBestSellers, getProducts } from "@/lib/products/queries";
 import ptBR from "@/locales/pt-BR.json";
+import { BannerCarousel } from "./banner-carousel";
 import { ProductCard } from "./product-card";
 import { ProductGrid } from "./product-grid";
 
 export default async function HomePage() {
-  const [bestSellers, firstPage] = await Promise.all([getBestSellers(), getProducts()]);
+  const [bestSellers, banners, firstPage] = await Promise.all([
+    getBestSellers(),
+    getBanners(),
+    getProducts(),
+  ]);
 
   return (
     <>
@@ -23,6 +29,12 @@ export default async function HomePage() {
               ))}
             </CarouselContent>
           </Carousel>
+        </section>
+      )}
+
+      {banners.length > 0 && (
+        <section className="pt-8">
+          <BannerCarousel banners={banners} />
         </section>
       )}
 

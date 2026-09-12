@@ -24,6 +24,23 @@ export type ProductInsert = Omit<
   synced_at?: string;
 };
 
+export type BannerRow = {
+  id: string;
+  image_url: string;
+  desktop_image_url: string | null;
+  link: string | null;
+  name: string;
+  active: boolean;
+  position: number;
+  created_at: string;
+};
+
+export type BannerInsert = Omit<BannerRow, "id" | "created_at" | "desktop_image_url"> & {
+  id?: string;
+  created_at?: string;
+  desktop_image_url?: string | null;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -31,6 +48,12 @@ export type Database = {
         Row: ProductRow;
         Insert: ProductInsert;
         Update: Partial<ProductInsert>;
+        Relationships: [];
+      };
+      banners: {
+        Row: BannerRow;
+        Insert: BannerInsert;
+        Update: Partial<BannerInsert>;
         Relationships: [];
       };
     };

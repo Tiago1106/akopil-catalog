@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { GalleryHorizontal, LayoutDashboard, LogOut, Store } from "lucide-react";
 import ptBR from "@/locales/pt-BR.json";
 import { signOut } from "@/app/admin/(protected)/actions";
 import {
@@ -19,6 +19,7 @@ import {
 
 const navItems = [
   { title: ptBR.admin.nav.dashboard, url: "/admin", icon: LayoutDashboard },
+  { title: ptBR.admin.nav.banners, url: "/admin/banners", icon: GalleryHorizontal },
 ];
 
 export function AppSidebar() {
@@ -55,6 +56,14 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={ptBR.admin.nav.viewCatalog}>
+              <Link href="/">
+                <Store />
+                <span>{ptBR.admin.nav.viewCatalog}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <form action={signOut}>
               <SidebarMenuButton type="submit" tooltip={ptBR.admin.dashboard.logout}>

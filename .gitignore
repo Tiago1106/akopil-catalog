@@ -37,6 +37,9 @@ yarn-error.log*
 # claude code session state
 .claude/scheduled_tasks.lock
 
+# scratch/prototype files, not part of the app
+/scratch
+
 # vercel
 .vercel
 
