@@ -6,12 +6,15 @@ Este arquivo registra o que mudou em cada versão. Contexto e decisões de arqui
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-09-13
+
 ### Adicionado
 
 - Banner de imagens de promoções: admin `/admin/banners` (upload multi-arquivo, nome editável, drag-and-drop desktop-only, ativo/inativo, link opcional, versão desktop separada da mobile), carrossel autoplay na Home.
-- Cadastro de produto nativo em `/admin/products` (criar/editar página cheia, até 4 fotos, tags/material texto livre) e controle de quantidade em estoque (badge "Esgotado"/"Última unidade!", teto no carrinho, revalidação de estoque no checkout).
-- Importação em lote de produtos via CSV+ZIP exportado do Notion (parse no navegador, prévia antes de confirmar, duplicata por nome pulada).
+- Cadastro de produto nativo em `/admin/products` (criar/editar página cheia, até 4 fotos, tags/material texto livre, paginação, duplicar produto), com controle de quantidade em estoque (badge "Esgotado" sobre a foto, "Última unidade!" inline ao lado do preço, teto no carrinho, revalidação de estoque no checkout).
+- Importação em lote de produtos via CSV+ZIP exportado do Notion (parse no navegador, prévia antes de confirmar, duplicata por nome pulada) — caminho de migração único, não integração contínua.
 - Atalho "Ver catálogo" na sidebar do admin.
+- Ambiente de dev separado (segundo projeto Supabase) pra testar mudanças de admin sem afetar dados reais de produção.
 
 ### Removido
 
@@ -20,6 +23,7 @@ Este arquivo registra o que mudou em cada versão. Contexto e decisões de arqui
 ### Alterado
 
 - Dashboard do admin (`/admin`) trocou "última sincronização" por contagem de produtos sem estoque.
+- Campo de preço `original_price` renomeado para `discount_price`: `price` agora é sempre o valor real/cheio do produto (riscado quando há promoção), `discount_price` é o valor efetivamente cobrado quando há desconto.
 
 ## [1.0.0] — 2026-09-03
 
