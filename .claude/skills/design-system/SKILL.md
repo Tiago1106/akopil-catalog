@@ -68,7 +68,7 @@ Ordem vertical: Header → carrossel "Mais vendidos" (scroll horizontal, sem pag
 
 ## Layout — Produto
 
-Duas colunas (empilha no mobile): grid 2×2 de fotos à esquerda; à direita eyebrow, nome, preço (+ riscado e badge "Promoção" quando há `original_price`), campo Material, campo Tags (pills), descrição curta, e dois botões lado a lado (`Adicionar ao carrinho` outline / `Abrir agora` sólido).
+Duas colunas (empilha no mobile): grid 2×2 de fotos à esquerda; à direita eyebrow, nome, preço (+ riscado e badge "Promoção" quando há `discount_price`), campo Material, campo Tags (pills), descrição curta, e dois botões lado a lado (`Adicionar ao carrinho` outline / `Abrir agora` sólido).
 
 ## Layout — Drawer do carrinho
 
