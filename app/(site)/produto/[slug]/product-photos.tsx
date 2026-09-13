@@ -14,7 +14,15 @@ import {
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ptBR from "@/locales/pt-BR.json";
 
-export function ProductPhotos({ images, alt }: { images: string[]; alt: string }) {
+export function ProductPhotos({
+  images,
+  alt,
+  outOfStock,
+}: {
+  images: string[];
+  alt: string;
+  outOfStock: boolean;
+}) {
   const [api, setApi] = React.useState<CarouselApi>();
   const [selected, setSelected] = React.useState(0);
   const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null);
@@ -47,7 +55,7 @@ export function ProductPhotos({ images, alt }: { images: string[]; alt: string }
           <CarouselContent className="ml-0">
             {images.map((src, index) => (
               <CarouselItem key={src} className="pl-0">
-                <AspectRatio ratio={1} className="overflow-hidden rounded-lg border bg-muted">
+                <AspectRatio ratio={1} className="relative overflow-hidden rounded-lg border bg-muted">
                   <Image
                     src={src}
                     alt={`${alt} ${index + 1}`}
@@ -55,6 +63,11 @@ export function ProductPhotos({ images, alt }: { images: string[]; alt: string }
                     sizes="100vw"
                     className="object-cover"
                   />
+                  {index === 0 && outOfStock && (
+                    <span className="absolute top-2 left-2 rounded bg-muted px-2 py-1 text-[11px] font-bold text-muted-foreground shadow-sm">
+                      {ptBR.product.outOfStockBadge}
+                    </span>
+                  )}
                 </AspectRatio>
               </CarouselItem>
             ))}
@@ -83,7 +96,7 @@ export function ProductPhotos({ images, alt }: { images: string[]; alt: string }
             onClick={() => setLightboxIndex(index)}
             className="cursor-pointer"
           >
-            <AspectRatio ratio={1} className="overflow-hidden rounded-lg border bg-muted">
+            <AspectRatio ratio={1} className="relative overflow-hidden rounded-lg border bg-muted">
               <Image
                 src={src}
                 alt={`${alt} ${index + 1}`}
@@ -91,6 +104,11 @@ export function ProductPhotos({ images, alt }: { images: string[]; alt: string }
                 sizes="45vw"
                 className="object-cover"
               />
+              {index === 0 && outOfStock && (
+                <span className="absolute top-2 left-2 rounded bg-muted px-2 py-1 text-[11px] font-bold text-muted-foreground shadow-sm">
+                  {ptBR.product.outOfStockBadge}
+                </span>
+              )}
             </AspectRatio>
           </button>
         ))}

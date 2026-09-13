@@ -27,7 +27,9 @@
     "materialLabel": "Material",
     "tagsLabel": "Tags",
     "promotionBadge": "Promoção",
-    "addToCart": "Adicionar ao carrinho"
+    "addToCart": "Adicionar ao carrinho",
+    "outOfStockBadge": "Esgotado",
+    "lastUnitBadge": "Última unidade!"
   },
   "cart": {
     "title": "Sacola",
@@ -37,6 +39,7 @@
     "remove": "Remover",
     "continueShopping": "Continuar comprando",
     "checkout": "Finalizar compra",
+    "stockAdjusted": "Alguns itens foram ajustados porque o estoque mudou. Confira a sacola antes de finalizar.",
     "whatsapp": {
       "greeting": "Olá! Vim pelo site e gostaria de finalizar a compra.",
       "itemLabel": "Item {n}:",
@@ -48,6 +51,7 @@
   "admin": {
     "nav": {
       "dashboard": "Dashboard",
+      "products": "Produtos",
       "banners": "Banners",
       "viewCatalog": "Ver catálogo"
     },
@@ -62,13 +66,9 @@
     },
     "dashboard": {
       "title": "Painel administrativo",
-      "lastSyncLabel": "Última sincronização",
+      "totalProductsLabel": "Total de produtos",
       "activeProductsLabel": "Produtos ativos",
-      "syncButton": "Sincronizar produtos",
-      "syncing": "Sincronizando...",
-      "syncStarted": "Sincronização iniciada...",
-      "syncSuccess": "Sincronização concluída.",
-      "syncError": "Erro ao sincronizar. Tente novamente.",
+      "outOfStockLabel": "Sem estoque",
       "logout": "Sair"
     },
     "banners": {
@@ -112,6 +112,92 @@
         "confirmEmpty": "Adicionar",
         "confirmSingular": "Adicionar {n} imagem",
         "confirmPlural": "Adicionar {n} imagens"
+      }
+    },
+    "products": {
+      "title": "Produtos",
+      "description": "Catálogo cadastrado direto aqui, sem passar pelo Notion.",
+      "addButton": "Adicionar produto",
+      "importButton": "Importar do Notion",
+      "listEmpty": "Nenhum produto ainda.",
+      "quantityLabel": "Qtd.",
+      "active": "Ativo",
+      "inactive": "Inativo",
+      "bestSeller": "Mais vendido",
+      "pagination": {
+        "pageSizeLabel": "Por página",
+        "pageLabel": "Página {page} de {totalPages}"
+      },
+      "columns": {
+        "product": "Produto",
+        "stock": "Estoque",
+        "price": "Preço",
+        "discount": "Desconto",
+        "actions": "Ações"
+      },
+      "expandImage": "Ampliar imagem",
+      "edit": "Editar",
+      "duplicate": "Duplicar",
+      "delete": "Remover",
+      "updateError": "Erro ao salvar. Tente novamente.",
+      "deleteError": "Erro ao remover. Tente novamente.",
+      "createError": "Erro ao criar. Tente novamente.",
+      "duplicateError": "Erro ao duplicar. Tente novamente.",
+      "deleteConfirm": {
+        "title": "Remover este produto?",
+        "description": "As fotos são apagadas do Storage e não tem como desfazer.",
+        "cancel": "Cancelar",
+        "confirm": "Remover"
+      },
+      "form": {
+        "back": "Voltar",
+        "sections": {
+          "nameDescription": "Nome e descrição",
+          "photos": "Fotos",
+          "pricing": "Preço e estoque",
+          "materialTags": "Material e tags",
+          "visibility": "Ativo e mais vendido"
+        },
+        "createTitle": "Novo produto",
+        "editTitle": "Editar produto",
+        "nameLabel": "Nome",
+        "priceLabel": "Preço",
+        "discountPriceLabel": "Desconto",
+        "materialLabel": "Material",
+        "descriptionLabel": "Descrição",
+        "tagsLabel": "Tags",
+        "tagsHint": "Separadas por vírgula",
+        "quantityLabel": "Quantidade em estoque",
+        "activeLabel": "Ativo",
+        "bestSellerLabel": "Mais vendido",
+        "submitCreate": "Criar produto",
+        "submitEdit": "Salvar alterações",
+        "cancel": "Cancelar",
+        "nameRequired": "Informe um nome.",
+        "priceRequired": "Informe um preço válido."
+      },
+      "import": {
+        "button": "Importar do Notion (.zip)",
+        "title": "Importar produtos",
+        "description": "Exporte a database do Notion como CSV (Markdown & CSV) e envie o .zip aqui.",
+        "dropzoneHint": "Arraste o .zip aqui ou clique para selecionar",
+        "dropzoneFormats": "Exportação do Notion — CSV + fotos no mesmo arquivo",
+        "parsing": "Lendo o arquivo…",
+        "previewName": "Nome",
+        "previewPrice": "Preço",
+        "previewQuantity": "Qtd.",
+        "previewImages": "Fotos",
+        "previewStatus": "Status",
+        "statusOk": "Pronto",
+        "statusDuplicate": "Já existe",
+        "statusInvalid": "Inválido",
+        "confirmEmpty": "Nada pra importar",
+        "confirmSingular": "Importar {n} produto",
+        "confirmPlural": "Importar {n} produtos",
+        "importing": "Importando…",
+        "summarySuccess": "{n} produtos importados.",
+        "error": "Erro ao importar. Tente novamente.",
+        "parseError": "Não consegui ler esse arquivo. Confira se é o .zip exportado do Notion."
       }
     }
   }

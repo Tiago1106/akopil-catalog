@@ -14,14 +14,16 @@ export function ProductActions({ product }: { product: ProductRow }) {
     slug: product.slug,
     name: product.name,
     price: product.price,
-    originalPrice: product.original_price,
+    discountPrice: product.discount_price,
     image: product.images[0] ?? null,
+    maxQuantity: product.quantity,
   };
 
   return (
     <Button
       type="button"
       className="w-full"
+      disabled={product.quantity === 0}
       onClick={() => {
         addItem(cartItem);
         openCart();

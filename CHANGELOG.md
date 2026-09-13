@@ -4,6 +4,23 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 Este arquivo registra o que mudou em cada versão. Contexto e decisões de arquitetura/produto ficam em [`documentation.md`](documentation.md).
 
+## [Unreleased]
+
+### Adicionado
+
+- Banner de imagens de promoções: admin `/admin/banners` (upload multi-arquivo, nome editável, drag-and-drop desktop-only, ativo/inativo, link opcional, versão desktop separada da mobile), carrossel autoplay na Home.
+- Cadastro de produto nativo em `/admin/products` (criar/editar página cheia, até 4 fotos, tags/material texto livre) e controle de quantidade em estoque (badge "Esgotado"/"Última unidade!", teto no carrinho, revalidação de estoque no checkout).
+- Importação em lote de produtos via CSV+ZIP exportado do Notion (parse no navegador, prévia antes de confirmar, duplicata por nome pulada).
+- Atalho "Ver catálogo" na sidebar do admin.
+
+### Removido
+
+- Integração com Notion por completo (sync, botão "Sincronizar", dependência `@notionhq/client`) — cadastro de produto deixou de depender de CMS externo.
+
+### Alterado
+
+- Dashboard do admin (`/admin`) trocou "última sincronização" por contagem de produtos sem estoque.
+
 ## [1.0.0] — 2026-09-03
 
 Primeira versão em produção. Reúne as Fases 1 a 4 do roadmap original.

@@ -12,18 +12,18 @@ export function slugify(name: string): string {
 
 export function resolveUniqueSlug(
   name: string,
-  notionPageId: string,
+  ownerId: string,
   takenSlugs: Map<string, string>,
 ): string {
   const baseSlug = slugify(name) || "produto";
   const ownerOfBase = takenSlugs.get(baseSlug);
 
-  if (!ownerOfBase || ownerOfBase === notionPageId) {
-    takenSlugs.set(baseSlug, notionPageId);
+  if (!ownerOfBase || ownerOfBase === ownerId) {
+    takenSlugs.set(baseSlug, ownerId);
     return baseSlug;
   }
 
-  const disambiguatedSlug = `${baseSlug}-${notionPageId.replace(/-/g, "").slice(0, 6)}`;
-  takenSlugs.set(disambiguatedSlug, notionPageId);
+  const disambiguatedSlug = `${baseSlug}-${ownerId.replace(/-/g, "").slice(0, 6)}`;
+  takenSlugs.set(disambiguatedSlug, ownerId);
   return disambiguatedSlug;
 }
