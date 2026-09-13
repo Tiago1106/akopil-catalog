@@ -18,7 +18,11 @@ export default async function ProductPage({
 
   return (
     <div className="grid gap-10 px-5 py-8 catalog:grid-cols-[1.1fr_0.9fr] catalog:gap-14 catalog:px-10 catalog:py-12">
-      <ProductPhotos images={product.images} alt={product.name} />
+      <ProductPhotos
+        images={product.images}
+        alt={product.name}
+        outOfStock={product.quantity === 0}
+      />
 
       <div>
         <div className="mb-2.5 text-[11px] font-bold tracking-[0.12em] text-muted-foreground uppercase">
@@ -26,14 +30,17 @@ export default async function ProductPage({
         </div>
         <h1 className="mb-3.5 text-2xl font-bold">{product.name}</h1>
         <div className="mb-6 flex items-baseline gap-2.5">
-          <div className="text-xl font-semibold">{formatPrice(product.price)}</div>
-          {product.original_price && (
-            <>
-              <div className="text-base text-gray-3 line-through">
-                {formatPrice(product.original_price)}
-              </div>
-              <Badge variant="outline">{ptBR.product.promotionBadge}</Badge>
-            </>
+          {product.discount_price && (
+            <div className="text-base text-gray-3 line-through">
+              {formatPrice(product.price)}
+            </div>
+          )}
+          <div className="text-xl font-semibold">
+            {formatPrice(product.discount_price ?? product.price)}
+          </div>
+          {product.discount_price && <Badge variant="outline">{ptBR.product.promotionBadge}</Badge>}
+          {product.quantity === 1 && (
+            <Badge variant="outline">{ptBR.product.lastUnitBadge}</Badge>
           )}
         </div>
 

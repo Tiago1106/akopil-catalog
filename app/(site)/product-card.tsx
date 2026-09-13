@@ -13,7 +13,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
     <Link href={`/produto/${product.slug}`} className="block">
       <AspectRatio
         ratio={1}
-        className="mb-2.5 overflow-hidden rounded-lg border bg-muted"
+        className="relative mb-2.5 overflow-hidden rounded-lg border bg-muted"
       >
         {thumbnail ? (
           <Image
@@ -28,6 +28,11 @@ export function ProductCard({ product }: { product: ProductRow }) {
             {ptBR.home.grid.noImage}
           </div>
         )}
+        {product.quantity === 0 && (
+          <span className="absolute top-2 left-2 rounded bg-muted px-2 py-1 text-[11px] font-bold text-muted-foreground shadow-sm">
+            {ptBR.product.outOfStockBadge}
+          </span>
+        )}
       </AspectRatio>
       <div className="mb-1 text-sm font-medium">{product.name}</div>
       {product.tags.length > 0 && (
@@ -39,13 +44,16 @@ export function ProductCard({ product }: { product: ProductRow }) {
           ))}
         </div>
       )}
-      <div className="text-sm text-muted-foreground">
-        {product.original_price && (
-          <span className="mr-1.5 text-gray-3 line-through">
-            {formatPrice(product.original_price)}
-          </span>
+      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+        {product.discount_price && (
+          <span className="text-gray-3 line-through">{formatPrice(product.price)}</span>
         )}
-        {formatPrice(product.price)}
+        <span>{formatPrice(product.discount_price ?? product.price)}</span>
+        {product.quantity === 1 && (
+          <Badge variant="outline" className="text-[10px]">
+            {ptBR.product.lastUnitBadge}
+          </Badge>
+        )}
       </div>
     </Link>
   );

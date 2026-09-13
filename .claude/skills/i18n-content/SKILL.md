@@ -49,9 +49,9 @@ Valor com desconto: R$ 240,00
 ```
 
 Regras de cálculo:
-- **Valor total** = soma dos `price` (preço original) de cada item.
-- **Valor com desconto** = soma dos preços reais pagos (usa `original_price` quando existe, senão `price`).
-- Se **nenhum** item do carrinho tiver `original_price`, mostra só uma linha `Valor: R$ X,XX` — nunca duplicar total/desconto quando não há diferença.
+- **Valor total** = soma dos `price` (valor real/cheio) de cada item.
+- **Valor com desconto** = soma dos preços reais pagos (usa `discount_price` quando existe, senão `price`).
+- Se **nenhum** item do carrinho tiver `discount_price`, mostra só uma linha `Valor: R$ X,XX` — nunca duplicar total/desconto quando não há diferença.
 - Link final: `https://wa.me/{numero}?text={mensagem}`, com a mensagem inteira (quebras de linha incluídas) passada por `encodeURIComponent`. `{numero}` vem de `process.env.NEXT_PUBLIC_WHATSAPP_NUMBER`, nunca hardcoded no componente.
 
 Não inventar variação no formato (emojis, texto extra, reordenar seções) sem o usuário pedir — o formato acima é decisão fechada.

@@ -1,27 +1,29 @@
 export type ProductRow = {
   id: string;
-  notion_page_id: string;
+  notion_page_id: string | null;
   slug: string;
   name: string;
   price: number;
-  original_price: number | null;
+  discount_price: number | null;
   material: string | null;
   description: string | null;
   tags: string[];
   images: string[];
   active: boolean;
   best_seller: boolean;
+  quantity: number;
   synced_at: string;
   created_at: string;
 };
 
 export type ProductInsert = Omit<
   ProductRow,
-  "id" | "created_at" | "synced_at"
+  "id" | "created_at" | "synced_at" | "notion_page_id"
 > & {
   id?: string;
   created_at?: string;
   synced_at?: string;
+  notion_page_id?: string | null;
 };
 
 export type BannerRow = {

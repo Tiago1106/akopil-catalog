@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GalleryHorizontal, LayoutDashboard, LogOut, Store } from "lucide-react";
+import { GalleryHorizontal, LayoutDashboard, LogOut, Store, Tag } from "lucide-react";
 import ptBR from "@/locales/pt-BR.json";
 import { signOut } from "@/app/admin/(protected)/actions";
 import {
@@ -19,6 +19,7 @@ import {
 
 const navItems = [
   { title: ptBR.admin.nav.dashboard, url: "/admin", icon: LayoutDashboard },
+  { title: ptBR.admin.nav.products, url: "/admin/products", icon: Tag },
   { title: ptBR.admin.nav.banners, url: "/admin/banners", icon: GalleryHorizontal },
 ];
 
@@ -40,7 +41,9 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.url}
+                    isActive={
+                      item.url === "/admin" ? pathname === "/admin" : pathname.startsWith(item.url)
+                    }
                     tooltip={item.title}
                   >
                     <Link href={item.url}>
