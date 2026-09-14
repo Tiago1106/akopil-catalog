@@ -37,8 +37,10 @@ Checklist rápido de "o que já existe" vs. "o que falta". Atualizar aqui a cada
 - [x] Notion aposentado — cadastro de produto nativo em `/admin/products` (criar/editar página cheia, até 4 fotos na ordem de upload, tags/material texto livre), quantidade em estoque (badge "Esgotado" sobre a foto, "Última unidade!" inline, teto no carrinho, revalidação de estoque no checkout), e importação em lote via CSV+ZIP exportado do Notion (parse 100% no navegador, pula duplicata por nome) — em produção
 - [x] Ambiente de dev separado: segundo projeto Supabase (schema espelhado, sem dado de prod) + `.env.development.local`, usado pra validar todo o trabalho acima antes de ir pra produção
 - [x] `price`/`discount_price`: `price` é o valor real/cheio, `discount_price` o valor cobrado quando há promoção (era `original_price`, papel invertido) — migrado em produção em duas etapas (expand: adicionar coluna nova; contract: trocar valores e apagar a coluna antiga), sem janela de downtime
+- [x] Catálogo de opções (material/tags): tabela `product_options`, admin `/admin/tags` (criar/excluir por tipo, sem edição — renomear é excluir e criar de novo), `material` virou lista (igual `tags`) selecionada por `Combobox` multiselect (shadcn) só a partir do catálogo — validado em dev
 
 ### Pendente
+- [ ] Migração do catálogo de opções (`product_options` + `material` como lista) em **produção** — script já existe, ainda não rodado; precisa ir junto com o deploy dessa branch pra `main` (mesmo cuidado da migração de `price`/`discount_price`, código novo não pode ir ao ar antes do schema)
 - [ ] Vulnerabilidade crítica de RCE no Next.js (`next@16.3.1`, ver aviso do `npm audit`) — upgrade pra `16.3.5+` não feito ainda, precisa de confirmação antes (pode ter breaking change)
 - [ ] Remover `NOTION_API_KEY`/`NOTION_DATABASE_ID` do ambiente de deploy (não usados mais)
 - [ ] SEO por produto (`generateMetadata` com `og:image`) — link de produto é compartilhado no WhatsApp e hoje não gera preview
@@ -112,7 +114,7 @@ create table products (
   name              text not null,
   price             numeric not null,
   discount_price    numeric,
-  material          text,
+  material          text[] default '{}',
   description       text,
   tags              text[] default '{}',
   images            text[] default '{}',
@@ -125,6 +127,7 @@ create table products (
 
 create index products_active_idx on products (active);
 create index products_tags_idx on products using gin (tags);
+create index products_material_idx on products using gin (material);
 create index products_best_seller_idx on products (best_seller) where best_seller = true;
 
 insert into storage.buckets (id, name, public)
@@ -138,6 +141,16 @@ alter table products add column quantity integer not null default 0;
 alter table products alter column notion_page_id drop not null;
 ```
 
+**Migração aplicada ao criar o catálogo de opções** (ver [Tabela `product_options`](#tabela-product_options)) — `material` deixou de ser texto livre singular e virou lista, igual `tags`:
+
+```sql
+alter table products
+  alter column material type text[]
+  using case when material is null or trim(material) = '' then '{}'::text[] else array[trim(material)] end;
+alter table products alter column material set default '{}';
+create index products_material_idx on products using gin (material);
+```
+
 | Campo | Notas |
 |---|---|
 | `notion_page_id` | **Legado** — só produtos migrados do Notion antigo têm valor aqui. Produto criado direto no admin ou pelo import CSV/ZIP nunca preenche (`null`). Não usado por nenhum código hoje. |
@@ -146,6 +159,7 @@ alter table products alter column notion_page_id drop not null;
 | `price` | Valor real/cheio do produto, sempre preenchido. Riscado quando há `discount_price`. |
 | `discount_price` | `null` quando não há desconto. Quando preenchido, é o valor efetivamente cobrado (badge outline "Promoção", sem cor) — `price` some riscado ao lado. |
 | `active` | `false` = produto invisível no site, sem apagar a linha. **Nunca há `DELETE`** automático — só manual, pelo botão de excluir no admin (que também limpa as fotos do Storage). Toda query pública filtra `active = true`. |
+| `material` | Lista (igual `tags`) desde o catálogo de opções (ver [Tabela `product_options`](#tabela-product_options)) — antes era `text` singular, texto livre. Selecionado no admin por um `Combobox` multiselect (shadcn), só com valores já cadastrados em `/admin/tags` (sem criação inline pra evitar digitação inconsistente, ex: "Prata"/"prata" como opções diferentes). |
 | `best_seller` | Decisão manual, direto no formulário do admin (`Switch`). Nunca calculado por heurística de vendas. Alimenta o carrossel "Mais vendidos". |
 | `quantity` | Estoque. `0` = "Esgotado" (badge + botão de comprar desabilitado), `1` = "Última unidade!". Editado inline (stepper com debounce) na lista `/admin/products`. Revalidado contra o Supabase logo antes de abrir o link do WhatsApp (`GET /api/products/stock`) — se algo mudou, a sacola se ajusta e mostra o aviso em vez de abrir o link na hora (ver Estrutura — Drawer do carrinho). |
 | `synced_at` | **Legado** do sync antigo — não é mais atualizado por nenhum código. Coluna mantida, mas órfã. |
@@ -159,6 +173,36 @@ product-images/
 ```
 
 Path mudou do antigo `{notion_page_id}/{posição}.jpg` pra `{product_id}/{uuid aleatório}.{ext}` — sem o Notion, não existe mais "posição" codificada no nome do arquivo (a ordem já é o próprio array `images`, reordenar nunca precisa renomear/mover nada no Storage). Ao criar um produto novo, o `id` é reservado no cliente (`crypto.randomUUID()`) antes de existir a linha, pra já poder subir fotos durante o cadastro.
+
+### Tabela `product_options`
+
+Catálogo de valores possíveis pra `material` e `tags` dos produtos — cadastrado em `/admin/tags`, consumido pelo `Combobox` multiselect do formulário de produto. Guarda só o nome da opção, sem relação (FK) com `products`: os produtos continuam guardando os labels direto em `material`/`tags` (mesma lógica de sempre), essa tabela só existe pra alimentar a lista de sugestões — decisão explícita pra não precisar migrar `products` pra um modelo relacional.
+
+```sql
+create table public.product_options (
+  id          uuid primary key default gen_random_uuid(),
+  type        text not null check (type in ('material', 'tag')),
+  name        text not null,
+  created_at  timestamptz not null default now()
+);
+
+create unique index product_options_type_name_idx
+  on public.product_options (type, lower(name));
+create index product_options_type_idx on public.product_options (type);
+
+alter table public.product_options enable row level security;
+
+grant select, insert, update, delete on public.product_options to service_role;
+```
+
+| Campo | Notas |
+|---|---|
+| `type` | `'material'` ou `'tag'` — mesma tabela pros dois, diferenciados só por essa coluna (pedido do usuário, evita duas tabelas quase idênticas). |
+| `name` | Único por tipo, case-insensitive (`unique index ... (type, lower(name))`) — evita "Prata"/"prata" como opções diferentes. |
+
+Sem policy de leitura pública (`anon`/`authenticated`) de propósito — diferente de `banners`, essa tabela não é lida pelo site público, só pelo admin via `createAdminClient()` (mesmo padrão de escrita de `products`/`banners`). Exclusão de opção é hard delete direto (sem confirmação de RLS/GRANT pendente aqui) — produtos que já usam o valor removido continuam com o texto salvo, só some da lista de seleção (mesma lógica de "sem FK" acima).
+
+Migrado do dado que já existia em `products.material`/`products.tags` quando a tabela foi criada (`insert ... select distinct` a partir de `products`, um script único, não um job recorrente).
 
 ### Tabela `banners`
 
@@ -263,11 +307,11 @@ Uma família só: Inter. Hierarquia por peso — `900` logo, `700` títulos/CTA,
 
 Header → carrossel "Mais vendidos" (scroll horizontal, `best_seller = true`) → Grid de produtos (imagem, nome, tags, preço; 4 colunas desktop / 2 mobile, infinite scroll em lotes de ~16) → Footer. Produto com `quantity = 0` mostra um rótulo "Esgotado" em cima da própria foto (canto superior esquerdo, fundo `bg-muted`/texto `text-muted-foreground` — cinza claro, dentro da paleta monocromática); `quantity = 1` mostra "Última unidade!" como badge inline ao lado do preço (não sobre a foto — decisão do usuário: só o esgotado precisa do destaque visual mais forte).
 
-Filtros (pills "Todos" + material/tag) faziam parte do design original mas **não foram implementados** — removidos do escopo por decisão do usuário. Se retomados: lista de opções sempre via `select distinct` contra `products`, nunca uma lista fixa no código.
+Filtros (pills "Todos" + material/tag) faziam parte do design original mas **não foram implementados** — removidos do escopo por decisão do usuário. Se retomados: lista de opções vem da tabela `product_options` (ver [Data model](#data-model)), já existe desde o catálogo de opções — não precisa mais de `select distinct` contra `products`.
 
 ### Estrutura — Produto
 
-Duas colunas (empilha no mobile): grid 2×2 de fotos à esquerda (carrossel de 1 foto no mobile, lightbox em tela cheia no desktop) — `quantity = 0` mostra "Esgotado" sobre a primeira foto (mesmo rótulo do card da Home), já que a galeria tem várias fotos e não uma capa única; à direita eyebrow, nome, preço (+ riscado e badge "Promoção" quando há `discount_price`, + badge "Última unidade!" quando `quantity = 1`), campo Material, campo Tags (pills), descrição curta, e um botão único "Adicionar ao carrinho" (adiciona + abre o drawer; `disabled` quando `quantity = 0`).
+Duas colunas (empilha no mobile): grid 2×2 de fotos à esquerda (carrossel de 1 foto no mobile, lightbox em tela cheia no desktop) — `quantity = 0` mostra "Esgotado" sobre a primeira foto (mesmo rótulo do card da Home), já que a galeria tem várias fotos e não uma capa única; à direita eyebrow, nome, preço (+ riscado e badge "Promoção" quando há `discount_price`, + badge "Última unidade!" quando `quantity = 1`), campo Material (pills), campo Tags (pills), descrição curta, e um botão único "Adicionar ao carrinho" (adiciona + abre o drawer; `disabled` quando `quantity = 0`).
 
 ### Estrutura — Drawer do carrinho
 
@@ -340,7 +384,8 @@ Regras:
 - Toda escrita (produtos, banners) é Route Handler autenticado (`requireUser()` + `createAdminClient()`), nunca Server Action — upload de arquivo não tem precedente de Server Action nesse projeto, e manter um padrão só evita duas convenções de chamada diferentes.
 - `best_seller` é sempre decisão manual (`Switch` no admin, era checkbox no Notion antes). Nunca calculado por heurística de vendas.
 - Mensagem do WhatsApp sempre agrega todos os itens do carrinho, nunca por item individual.
-- Filtros de material/tag removidos do escopo (Fase 2) — não reimplementar sem pedido explícito. Tags/material são texto livre no admin (sem lista fixa/autocomplete) — decisão explícita, aceita o risco de digitação inconsistente.
+- Filtros de material/tag removidos do escopo (Fase 2) — não reimplementar sem pedido explícito.
+- Tags/material selecionados no admin via `Combobox` multiselect (shadcn), só a partir do catálogo cadastrado em `/admin/tags` — reabre a decisão antiga de "texto livre" (ver [Log de decisões](#log-de-decisões), 2026-09-13). Sem criação inline no formulário de produto, de propósito: mantém o catálogo controlado pela página dedicada.
 - Um botão só na página de produto ("Adicionar ao carrinho", que já abre o drawer) — "Abrir agora" foi removido por ser redundante.
 - CTA de "adicionar ao carrinho" direto no card do grid foi considerado e rejeitado (hover não existe em touch, mobile é prioridade) — só as tags do produto foram mantidas no card.
 - Fotos de produto **não têm reordenar** depois de enviadas — a ordem é sempre a ordem de upload (manual) ou a ordem da célula `Images` do CSV (import). Pra mudar, remove e sobe de novo.
@@ -396,3 +441,14 @@ Entradas novas de decisão de produto/arquitetura entram aqui, mais recente prim
 - **Fluxo de git formalizado**: branch `dev` criada no GitHub como intermediária entre trabalho em andamento e `main` (produção) — daqui pra frente, trabalho novo nasce numa branch `feature/*`, PR pra `dev`, valida lá, depois PR de `dev` pra `main` promove pra produção. "Automatically delete head branches" ativado no repositório, então toda branch de feature some sozinha depois do merge.
 - **Migração de preço em duas etapas, sem downtime**: a troca `original_price` → `discount_price` (ver entrada anterior) rodou em produção como **expand/contract** em vez de um rename+swap só — etapa 1 (`alter table products add column discount_price numeric`) rodada antes do deploy, sem nenhum risco pro site no ar; etapa 2 (trocar os valores dos produtos com desconto + `drop column original_price`) só depois de confirmar o deploy novo já servindo produção. Evita a janela em que código e schema ficariam fora de sincronia (código velho quebrando contra coluna renomeada, ou código novo lendo uma coluna que ainda não existe).
 - **Tudo confirmado no ar em produção** pelo usuário: cadastro nativo de produto, estoque, badges, Preço/Desconto, e a importação em lote. Trabalho desta sessão está concluído — pendências que restam (RCE do Next.js, `dev.akopil.com.br`, limpeza de env vars do Notion) estão listadas em [Status do projeto](#status-do-projeto).
+
+### 2026-09-13 — Catálogo de opções pra Material/Tags (reabre decisão de "texto livre")
+
+- **Motivação**: usuário queria pré-configurar as opções possíveis de material/tag em vez de deixar o admin digitar qualquer coisa no cadastro de produto — reabre de propósito a decisão fechada de "texto livre, aceita risco de digitação inconsistente" (ver entrada de 2026-09-12).
+- Decisões fechadas com o usuário antes de implementar (conversa, sem plan mode dessa vez — escopo pequeno o bastante): (1) **denormalizado** — `products.material`/`products.tags` continuam array de string (label direto), a tabela nova é só um catálogo de sugestões, sem FK/join; renomear uma opção não propaga pros produtos já salvos, risco aceito; (2) **sem criação inline** — o `Combobox` do formulário de produto só lista o que já existe em `/admin/tags`, não cria opção nova na hora; (3) **migrar dado existente** — script inicial faz `insert ... select distinct` a partir dos valores já usados em `products`, pra não perder nada cadastrado antes.
+- **`material` virou lista** (era `text` singular) pra poder ser multiselect igual `tags` — pedido explícito do usuário ("vai ser multiselect os 2 campos"), reabre também a decisão de "campo Material" ser singular no layout da página de produto (agora pills, igual Tags).
+- Implementado: tabela `product_options` (`type` `'material'|'tag'` + `name`, unique case-insensitive por tipo — ver [Data model](#data-model)); `lib/product-options/queries.ts` + `app/api/product-options/*` (Route Handler autenticado, mesmo padrão de `banners`); admin `/admin/tags` (`product-options-manager.tsx` + `option-section.tsx`, duas seções lado a lado, criar por `Input`+`Button`, excluir com `AlertDialog` — hard delete direto, sem RLS pública porque só o admin autenticado usa essa tabela); `product-form.tsx` trocou os dois `Input` de material/tags por `OptionMultiselect` (`option-multiselect.tsx`), wrapper em cima do `Combobox` multiselect do shadcn (`multiple` + `value`/`onValueChange` como array — base do componente é `@base-ui/react`); página de produto (`produto/[slug]/page.tsx`) e import CSV (`use-csv-import.ts`) ajustados pro `material` como array.
+- **Combobox instalado via `npx shadcn add combobox`, que também trouxe `input-group` (dependência). Mesmo bug de sempre**: veio importando `cn` do pacote npm `cn` em vez de `@/lib/utils`, nos dois arquivos novos (`combobox.tsx`, `input-group.tsx`) — corrigido do mesmo jeito das vezes anteriores, pacote `cn` desinstalado. Terceira vez que esse bug acontece com `npx shadcn add`; se voltar a acontecer, virou padrão esperado, não vale mais investigar a causa a cada vez.
+- **Import CSV não passa pelo catálogo**: valores de `Material`/`Tags` de uma exportação do Notion continuam texto livre (separados por vírgula), sem checar contra `product_options` — path de migração em lote, não o fluxo do dia a dia, então aceita o mesmo risco de digitação inconsistente que a decisão de 2026-09-12 já tinha aceito, só que agora restrito a esse caminho.
+- Verificação: `npm run build`/`npm run lint` limpos. Script SQL rodado pelo usuário no ambiente de **dev**; `npm run dev` (carrega `.env.development.local`) confirmado servindo a tela de login em `/admin/tags` — fluxo autenticado completo (criar/excluir opção, Combobox no formulário) ainda não verificado por mim (login do admin não é algo que eu deva digitar), fica pro usuário confirmar.
+- **Produção ainda pendente** (ver [Status do projeto](#status-do-projeto)): script de prod seguirá o mesmo cuidado da migração de `price`/`discount_price` — rodar junto com o deploy dessa branch pra `main`, não antes nem sozinho, porque o código novo já espera `material` como array e a tabela `product_options` existindo.

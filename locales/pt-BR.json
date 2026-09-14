@@ -53,6 +53,7 @@
       "dashboard": "Dashboard",
       "products": "Produtos",
       "banners": "Banners",
+      "tags": "Tags e materiais",
       "viewCatalog": "Ver catálogo"
     },
     "login": {
@@ -164,9 +165,11 @@
         "priceLabel": "Preço",
         "discountPriceLabel": "Desconto",
         "materialLabel": "Material",
+        "materialPlaceholder": "Selecionar material",
         "descriptionLabel": "Descrição",
         "tagsLabel": "Tags",
-        "tagsHint": "Separadas por vírgula",
+        "tagsPlaceholder": "Selecionar tags",
+        "optionsEmpty": "Nenhuma opção cadastrada em Tags e materiais.",
         "quantityLabel": "Quantidade em estoque",
         "activeLabel": "Ativo",
         "bestSellerLabel": "Mais vendido",
@@ -198,6 +201,25 @@
         "summarySuccess": "{n} produtos importados.",
         "error": "Erro ao importar. Tente novamente.",
         "parseError": "Não consegui ler esse arquivo. Confira se é o .zip exportado do Notion."
+      }
+    },
+    "tags": {
+      "title": "Tags e materiais",
+      "description": "Opções disponíveis pra selecionar no cadastro de produto.",
+      "materialSection": "Material",
+      "tagSection": "Tags",
+      "namePlaceholder": "Nome",
+      "addButton": "Adicionar",
+      "listEmpty": "Nenhuma opção ainda.",
+      "delete": "Remover",
+      "createError": "Erro ao criar. Tente novamente.",
+      "duplicateError": "Essa opção já existe.",
+      "deleteError": "Erro ao remover. Tente novamente.",
+      "deleteConfirm": {
+        "title": "Remover esta opção?",
+        "description": "Produtos que já usam esse valor continuam com ele — só some da lista de seleção.",
+        "cancel": "Cancelar",
+        "confirm": "Remover"
       }
     }
   }

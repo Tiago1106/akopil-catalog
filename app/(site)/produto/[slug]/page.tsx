@@ -44,12 +44,18 @@ export default async function ProductPage({
           )}
         </div>
 
-        {product.material && (
+        {product.material.length > 0 && (
           <div className="flex border-t py-3.5 text-sm">
-            <div className="w-28 font-medium text-muted-foreground">
+            <div className="w-28 shrink-0 font-medium text-muted-foreground">
               {ptBR.product.materialLabel}
             </div>
-            <div>{product.material}</div>
+            <div className="flex flex-wrap gap-1.5">
+              {product.material.map((material) => (
+                <Badge key={material} variant="outline">
+                  {material}
+                </Badge>
+              ))}
+            </div>
           </div>
         )}
 

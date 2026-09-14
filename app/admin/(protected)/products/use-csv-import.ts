@@ -15,7 +15,7 @@ export type ParsedRow = {
   name: string;
   price: number | null;
   discountPrice: number | null;
-  material: string | null;
+  material: string[];
   description: string;
   tags: string[];
   active: boolean;
@@ -106,7 +106,7 @@ export function useCsvImport(existingProducts: ExistingProduct[]) {
           name,
           price,
           discountPrice,
-          material: raw.Material?.trim() || null,
+          material: splitList(raw.Material),
           description: raw.Description?.trim() ?? "",
           tags: splitList(raw.Tags),
           active: raw.Ativo === "Yes",

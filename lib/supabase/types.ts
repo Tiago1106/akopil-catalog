@@ -5,7 +5,7 @@ export type ProductRow = {
   name: string;
   price: number;
   discount_price: number | null;
-  material: string | null;
+  material: string[];
   description: string | null;
   tags: string[];
   images: string[];
@@ -43,6 +43,20 @@ export type BannerInsert = Omit<BannerRow, "id" | "created_at" | "desktop_image_
   desktop_image_url?: string | null;
 };
 
+export type ProductOptionType = "material" | "tag";
+
+export type ProductOptionRow = {
+  id: string;
+  type: ProductOptionType;
+  name: string;
+  created_at: string;
+};
+
+export type ProductOptionInsert = Omit<ProductOptionRow, "id" | "created_at"> & {
+  id?: string;
+  created_at?: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -56,6 +70,12 @@ export type Database = {
         Row: BannerRow;
         Insert: BannerInsert;
         Update: Partial<BannerInsert>;
+        Relationships: [];
+      };
+      product_options: {
+        Row: ProductOptionRow;
+        Insert: ProductOptionInsert;
+        Update: Partial<ProductOptionInsert>;
         Relationships: [];
       };
     };
