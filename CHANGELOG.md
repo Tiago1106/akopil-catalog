@@ -10,6 +10,16 @@ Este arquivo registra o que mudou em cada versão. Contexto e decisões de arqui
 
 ### Adicionado
 
+- Catálogo de opções de material/tags: admin `/admin/tags` (criar/excluir por tipo, sem lista fixa no código). Cadastro de produto ganhou seleção por `Combobox` multiselect (shadcn), só a partir das opções cadastradas.
+
+### Alterado
+
+- Campo `material` do produto deixou de ser texto livre singular e virou lista (igual `tags`), exibido como pills na página de produto.
+
+## [1.1.0] — 2026-09-13
+
+### Adicionado
+
 - Banner de imagens de promoções: admin `/admin/banners` (upload multi-arquivo, nome editável, drag-and-drop desktop-only, ativo/inativo, link opcional, versão desktop separada da mobile), carrossel autoplay na Home.
 - Cadastro de produto nativo em `/admin/products` (criar/editar página cheia, até 4 fotos, tags/material texto livre, paginação, duplicar produto), com controle de quantidade em estoque (badge "Esgotado" sobre a foto, "Última unidade!" inline ao lado do preço, teto no carrinho, revalidação de estoque no checkout).
 - Importação em lote de produtos via CSV+ZIP exportado do Notion (parse no navegador, prévia antes de confirmar, duplicata por nome pulada) — caminho de migração único, não integração contínua.

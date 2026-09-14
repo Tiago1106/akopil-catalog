@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getProductOptions } from "@/lib/product-options/queries";
 import { ProductForm } from "../product-form";
 
 export default async function ProductFormPage({
@@ -11,16 +12,27 @@ export default async function ProductFormPage({
   const supabase = createAdminClient();
 
   if (id === "new") {
-    const { data: existingSlugs } = await supabase.from("products").select("id, slug");
-    return <ProductForm mode="create" existingSlugs={existingSlugs ?? []} />;
+    const [{ data: existingSlugs }, options] = await Promise.all([
+      supabase.from("products").select("id, slug"),
+      getProductOptions(),
+    ]);
+    return <ProductForm mode="create" existingSlugs={existingSlugs ?? []} options={options} />;
   }
 
-  const [{ data: product }, { data: existingSlugs }] = await Promise.all([
+  const [{ data: product }, { data: existingSlugs }, options] = await Promise.all([
     supabase.from("products").select("*").eq("id", id).maybeSingle(),
     supabase.from("products").select("id, slug").neq("id", id),
+    getProductOptions(),
   ]);
 
   if (!product) notFound();
 
-  return <ProductForm mode="edit" product={product} existingSlugs={existingSlugs ?? []} />;
+  return (
+    <ProductForm
+      mode="edit"
+      product={product}
+      existingSlugs={existingSlugs ?? []}
+      options={options}
+    />
+  );
 }
