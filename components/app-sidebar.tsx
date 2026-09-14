@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GalleryHorizontal, LayoutDashboard, LogOut, Store, Tag } from "lucide-react";
+import { GalleryHorizontal, LayoutDashboard, LogOut, Store, Tag, Tags } from "lucide-react";
 import ptBR from "@/locales/pt-BR.json";
 import { signOut } from "@/app/admin/(protected)/actions";
 import {
@@ -21,6 +21,7 @@ const navItems = [
   { title: ptBR.admin.nav.dashboard, url: "/admin", icon: LayoutDashboard },
   { title: ptBR.admin.nav.products, url: "/admin/products", icon: Tag },
   { title: ptBR.admin.nav.banners, url: "/admin/banners", icon: GalleryHorizontal },
+  { title: ptBR.admin.nav.tags, url: "/admin/tags", icon: Tags },
 ];
 
 export function AppSidebar() {

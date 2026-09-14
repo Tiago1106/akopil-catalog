@@ -6,6 +6,14 @@ Este arquivo registra o que mudou em cada versão. Contexto e decisões de arqui
 
 ## [Unreleased]
 
+### Adicionado
+
+- Catálogo de opções de material/tags: admin `/admin/tags` (criar/excluir por tipo, sem lista fixa no código). Cadastro de produto ganhou seleção por `Combobox` multiselect (shadcn), só a partir das opções cadastradas.
+
+### Alterado
+
+- Campo `material` do produto deixou de ser texto livre singular e virou lista (igual `tags`), exibido como pills na página de produto.
+
 ## [1.1.0] — 2026-09-13
 
 ### Adicionado

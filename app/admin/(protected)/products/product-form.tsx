@@ -13,18 +13,24 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { resolveUniqueSlug } from "@/lib/products/slug";
-import type { ProductRow } from "@/lib/supabase/types";
+import type { ProductOptionRow, ProductRow } from "@/lib/supabase/types";
 import { ImageManager } from "./image-manager";
+import { OptionMultiselect } from "./option-multiselect";
 
 export function ProductForm({
   mode,
   product,
   existingSlugs,
+  options,
 }: {
   mode: "create" | "edit";
   product?: ProductRow;
   existingSlugs: { id: string; slug: string }[];
+  options: ProductOptionRow[];
 }) {
+  const materialOptions = options.filter((o) => o.type === "material").map((o) => o.name);
+  const tagOptions = options.filter((o) => o.type === "tag").map((o) => o.name);
+
   const router = useRouter();
   const [productId] = useState(() => product?.id ?? crypto.randomUUID());
 
@@ -33,9 +39,9 @@ export function ProductForm({
   const [discountPrice, setDiscountPrice] = useState(
     product?.discount_price != null ? String(product.discount_price) : "",
   );
-  const [material, setMaterial] = useState(product?.material ?? "");
+  const [material, setMaterial] = useState<string[]>(product?.material ?? []);
   const [description, setDescription] = useState(product?.description ?? "");
-  const [tags, setTags] = useState(product?.tags.join(", ") ?? "");
+  const [tags, setTags] = useState<string[]>(product?.tags ?? []);
   const [images, setImages] = useState<string[]>(product?.images ?? []);
   const [active, setActive] = useState(product?.active ?? true);
   const [bestSeller, setBestSeller] = useState(product?.best_seller ?? false);
@@ -64,12 +70,9 @@ export function ProductForm({
       name: trimmedName,
       price: parsedPrice,
       discount_price: discountPrice.trim() ? Number(discountPrice) : null,
-      material: material.trim() || null,
+      material,
       description: description.trim() || null,
-      tags: tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags,
       images,
       active,
       best_seller: bestSeller,
@@ -215,15 +218,22 @@ export function ProductForm({
               <Field orientation="responsive">
                 <Field>
                   <FieldLabel htmlFor="material">{ptBR.admin.products.form.materialLabel}</FieldLabel>
-                  <Input id="material" value={material} onChange={(e) => setMaterial(e.target.value)} />
+                  <OptionMultiselect
+                    id="material"
+                    value={material}
+                    onChange={setMaterial}
+                    items={materialOptions}
+                    placeholder={ptBR.admin.products.form.materialPlaceholder}
+                  />
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="tags">{ptBR.admin.products.form.tagsLabel}</FieldLabel>
-                  <Input
+                  <OptionMultiselect
                     id="tags"
                     value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    placeholder={ptBR.admin.products.form.tagsHint}
+                    onChange={setTags}
+                    items={tagOptions}
+                    placeholder={ptBR.admin.products.form.tagsPlaceholder}
                   />
                 </Field>
               </Field>
